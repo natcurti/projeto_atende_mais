@@ -73,7 +73,8 @@ python manage.py carregar_dados_exemplo
 python manage.py runserver
 ```
 
-Abra **http://127.0.0.1:8000** no navegador. Para parar o servidor, use `Ctrl + C` no terminal.
+Abra **http://127.0.0.1:8000** no navegador: a tela de entrada aparece, com login e cadastro de cliente.
+Para parar o servidor, use `Ctrl + C` no terminal.
 
 **Usuários de exemplo** (senha de todos: `atende123`):
 
@@ -83,8 +84,8 @@ Abra **http://127.0.0.1:8000** no navegador. Para parar o servidor, use `Ctrl + 
 | Atendente | carlos@empresa.com |
 | Cliente | maria@souzacomercio.com.br |
 
-Enquanto as telas do MVP não ficam prontas, os dados podem ser vistos na área técnica do Django,
-em http://127.0.0.1:8000/admin, entrando como a administradora.
+Todos os dados também podem ser vistos na área técnica do Django, em http://127.0.0.1:8000/admin,
+entrando como a administradora.
 
 **Testes automatizados**
 
