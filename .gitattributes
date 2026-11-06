@@ -1,0 +1,8 @@
+# Padroniza as quebras de linha (LF) no repositório, mesmo para quem usa Windows.
+* text=auto eol=lf
+
+# Arquivos binários: o Git não tenta comparar nem converter.
+*.png binary
+*.jpg binary
+*.pdf binary
+*.sqlite3 binary
