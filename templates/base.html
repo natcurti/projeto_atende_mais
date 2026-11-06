@@ -1,0 +1,34 @@
+{% load static %}<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titulo %}atende+{% endblock %} | atende+</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+<header class="topo">
+  <div class="topo-interno">
+    <a class="marca" href="{% url 'inicio' %}">atende<span class="mais">+</span></a>
+    <nav class="menu" aria-label="Menu principal">
+      {% block menu %}{% endblock %}
+    </nav>
+    <div class="usuario">
+      {% if user.is_authenticated %}
+        <span>{{ user.nome }} <small>{{ user.get_perfil_display }}</small></span>
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+<main class="pagina">
+  {% for mensagem in messages %}
+    <p class="aviso{% if mensagem.tags == 'info' %} aviso-info{% endif %}" role="status">{{ mensagem }}</p>
+  {% endfor %}
+  {% block conteudo %}{% endblock %}
+</main>
+</body>
+</html>
