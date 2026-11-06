@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guia de estilo | atende+</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="prototipo-aviso">Protótipo navegável do atende+ com dados fictícios. <a href="index.html">Voltar ao início</a></div>
+<header class="topo">
+  <div class="topo-interno">
+    <a class="marca" href="index.html">atende<span class="mais">+</span></a>
+  </div>
+</header>
+
+<main class="pagina guia">
+  <div class="cabecalho-pagina">
+    <div>
+      <h1>Guia de estilo</h1>
+      <p class="subtitulo">Cores, tipografia e componentes usados em todas as telas.</p>
+    </div>
+  </div>
+
+  <section>
+    <h2>Cores da marca</h2>
+    <div class="amostras">
+      <div class="amostra"><div class="cor" style="background:#0F5E6E"></div><div><strong>Petróleo</strong><br><code>#0F5E6E</code><br>Topo, botões e links</div></div>
+      <div class="amostra"><div class="cor" style="background:#0B4753"></div><div><strong>Petróleo escuro</strong><br><code>#0B4753</code><br>Passar o mouse e foco</div></div>
+      <div class="amostra"><div class="cor" style="background:#E2EFF1"></div><div><strong>Petróleo claro</strong><br><code>#E2EFF1</code><br>Mensagens da equipe</div></div>
+      <div class="amostra"><div class="cor" style="background:#F2B705"></div><div><strong>Sinal</strong><br><code>#F2B705</code><br>O "+" da marca</div></div>
+      <div class="amostra"><div class="cor" style="background:#FFF6D6"></div><div><strong>Sinal claro</strong><br><code>#FFF6D6</code><br>Notas internas</div></div>
+      <div class="amostra"><div class="cor" style="background:#F3F6F6"></div><div><strong>Papel</strong><br><code>#F3F6F6</code><br>Fundo das páginas</div></div>
+      <div class="amostra"><div class="cor" style="background:#1E2A33"></div><div><strong>Texto</strong><br><code>#1E2A33</code><br>Texto principal</div></div>
+      <div class="amostra"><div class="cor" style="background:#52626A"></div><div><strong>Texto suave</strong><br><code>#52626A</code><br>Datas e legendas</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Situações do ticket</h2>
+    <p class="subtitulo" style="margin-bottom:16px">Cada situação tem cor própria, mas o nome sempre aparece escrito. Quem não distingue cores entende do mesmo jeito.</p>
+    <div class="vitrine">
+      <span class="situacao s-aberto">Aberto</span>
+      <span class="situacao s-atendimento">Em atendimento</span>
+      <span class="situacao s-aguardando">Aguardando cliente</span>
+      <span class="situacao s-resolvido">Resolvido</span>
+      <span class="situacao s-fechado">Fechado</span>
+      <span class="situacao s-atrasado">Atrasado</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Prioridade</h2>
+    <p class="subtitulo" style="margin-bottom:16px">As barras mostram a intensidade; o nome deixa claro qual é.</p>
+    <div class="vitrine" style="gap:28px">
+      <span class="prioridade p-baixa"><span class="barras" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Baixa</span>
+      <span class="prioridade p-media"><span class="barras" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Média</span>
+      <span class="prioridade p-alta"><span class="barras" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Alta</span>
+      <span class="prioridade p-urgente"><span class="barras" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Urgente</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tipografia</h2>
+    <div class="painel" style="display:flex;flex-direction:column;gap:12px">
+      <p>Fonte: <strong>Atkinson Hyperlegible</strong>, criada pelo Braille Institute para ser lida com facilidade, inclusive por pessoas com baixa visão. Pesos usados: regular (400) e negrito (700).</p>
+      <h1>Título da página (28 px)</h1>
+      <h2>Título de seção (20 px)</h2>
+      <h3>Subtítulo (17 px)</h3>
+      <p>Texto comum (16 px). O cliente descreve o problema e acompanha o atendimento até a solução.</p>
+      <p class="dica">Legenda e dica (14 px)</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Botões</h2>
+    <div class="vitrine">
+      <button class="botao botao-principal" type="button">Enviar ticket</button>
+      <button class="botao" type="button">Cancelar</button>
+      <button class="botao botao-pequeno" type="button">Assumir</button>
+      <button class="botao botao-perigo" type="button">Desativar</button>
+      <button class="botao-texto" type="button">Editar</button>
+    </div>
+    <p class="dica" style="margin-top:12px">Um único botão principal por tela, para a ação mais importante. Todos têm pelo menos 44 px de altura, para facilitar o toque no celular.</p>
+  </section>
+
+  <section>
+    <h2>Campos de formulário</h2>
+    <div class="painel" style="max-width:560px">
+      <div class="formulario">
+        <div class="campo">
+          <label for="ex-titulo">Título <span class="obrigatorio" aria-hidden="true">*</span></label>
+          <input id="ex-titulo" type="text" placeholder="Resuma o problema em uma frase">
+          <span class="dica">Ex.: Erro ao emitir nota fiscal</span>
+        </div>
+        <div class="campo">
+          <label for="ex-categoria">Categoria</label>
+          <select id="ex-categoria"><option>Erro no sistema</option><option>Dúvida</option><option>Financeiro</option></select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Conversa do ticket</h2>
+    <div class="conversa" style="max-width:760px">
+      <article class="mensagem">
+        <header><strong>Mensagem do cliente</strong><time>05/11 09:30</time></header>
+        <p>Fica à esquerda, com fundo branco.</p>
+      </article>
+      <p class="evento">Mudança registrada automaticamente</p>
+      <article class="mensagem mensagem-equipe">
+        <header><strong>Mensagem da equipe</strong><time>05/11 10:05</time></header>
+        <p>Fica à direita, em petróleo claro.</p>
+      </article>
+      <article class="mensagem mensagem-interna">
+        <header><span class="selo">Nota interna: o cliente não vê</span><time>05/11 10:04</time></header>
+        <p>Fundo amarelo e borda tracejada, como um post-it da equipe.</p>
+      </article>
+    </div>
+  </section>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>
