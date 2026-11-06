@@ -1,7 +1,5 @@
 # atende+ — Entrega 1: Levantamento de Requisitos
 
-Atualizado em 06/11/2026
-
 ## 1. Apresentação
 
 O atende+ é um sistema web de tickets de suporte. Com ele, clientes de uma empresa de software abrem chamados e a equipe de atendimento acompanha cada um até a solução.
