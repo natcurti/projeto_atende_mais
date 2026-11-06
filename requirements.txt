@@ -1,0 +1,3 @@
+# Dependências do atende+ (instale com: pip install -r requirements.txt)
+Django>=5.2,<5.3          # versão LTS, com suporte até abril de 2028
+python-dotenv>=1.0,<2     # lê as configurações do arquivo .env
