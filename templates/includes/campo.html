@@ -1,0 +1,11 @@
+{% comment %}
+Desenha um campo de formulário no padrão do guia de estilo.
+Uso: {% include "includes/campo.html" with campo=form.email %}
+O Django liga a dica e os erros ao campo para leitores de tela (aria-describedby, aria-invalid).
+{% endcomment %}
+<div class="campo{% if campo.errors %} com-erro{% endif %}">
+  <label for="{{ campo.id_for_label }}">{{ campo.label }}{% if campo.field.required %} <span class="obrigatorio" aria-hidden="true">*</span>{% endif %}</label>
+  {{ campo }}
+  {% if campo.help_text %}<span class="dica" id="{{ campo.auto_id }}_helptext">{{ campo.help_text }}</span>{% endif %}
+  {% for erro in campo.errors %}<span class="erro-campo">{{ erro }}</span>{% endfor %}
+</div>
