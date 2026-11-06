@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fila de atendimento | atende+</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="prototipo-aviso">Protótipo navegável do atende+ com dados fictícios. <a href="index.html">Voltar ao início</a></div>
+<header class="topo">
+  <div class="topo-interno">
+    <a class="marca" href="equipe-fila.html">atende<span class="mais">+</span></a>
+    <nav class="menu" aria-label="Menu principal">
+      <a href="equipe-fila.html" aria-current="page">Fila</a>
+      <a href="admin.html" data-so-admin hidden>Administração</a>
+    </nav>
+    <div class="usuario"><span data-nome-usuario>Carlos Lima <small>Atendente</small></span><a href="index.html">Sair</a></div>
+  </div>
+</header>
+
+<main class="pagina">
+  <p class="aviso" data-aviso="assumido" role="status" hidden>O ticket agora está com você e passou para Em atendimento.</p>
+
+  <div class="cabecalho-pagina">
+    <div>
+      <h1>Fila de atendimento</h1>
+      <p class="subtitulo">Atrasados aparecem primeiro; depois, os de prazo mais próximo.</p>
+    </div>
+  </div>
+
+  <nav class="contadores" aria-label="Resumo da fila">
+    <a class="contador" href="#"><strong>12</strong><span class="situacao s-aberto">Abertos</span></a>
+    <a class="contador" href="#"><strong>8</strong><span class="situacao s-atendimento">Em atendimento</span></a>
+    <a class="contador" href="#"><strong>5</strong><span class="situacao s-aguardando">Aguardando cliente</span></a>
+    <a class="contador" href="#"><strong>3</strong><span class="situacao s-atrasado">Atrasados</span></a>
+  </nav>
+
+  <form class="filtros" role="search" onsubmit="return false">
+    <div class="campo busca">
+      <label for="busca">Buscar</label>
+      <input id="busca" type="search" placeholder="Número ou palavra do título">
+    </div>
+    <div class="campo">
+      <label for="f-situacao">Situação</label>
+      <select id="f-situacao"><option>Todas em aberto</option><option>Aberto</option><option>Em atendimento</option><option>Aguardando cliente</option><option>Resolvido</option><option>Fechado</option></select>
+    </div>
+    <div class="campo">
+      <label for="f-categoria">Categoria</label>
+      <select id="f-categoria"><option>Todas</option><option>Erro no sistema</option><option>Dúvida</option><option>Financeiro</option></select>
+    </div>
+    <div class="campo">
+      <label for="f-prioridade">Prioridade</label>
+      <select id="f-prioridade"><option>Todas</option><option>Urgente</option><option>Alta</option><option>Média</option><option>Baixa</option></select>
+    </div>
+    <div class="campo">
+      <label for="f-atendente">Atendente</label>
+      <select id="f-atendente"><option>Todos</option><option>Comigo</option><option>Sem atendente</option><option>Ana Reis</option></select>
+    </div>
+  </form>
+
+  <div class="tabela-caixa">
+    <table>
+      <caption class="sr-only">Tickets da fila</caption>
+      <thead>
+        <tr><th scope="col">Nº</th><th scope="col">Título e cliente</th><th scope="col">Categoria</th><th scope="col">Prioridade</th><th scope="col">Situação</th><th scope="col">Atendente</th><th scope="col">Prazo</th><th scope="col"><span class="sr-only">Ação</span></th></tr>
+      </thead>
+      <tbody>
+        <tr class="linha-atrasada">
+          <td class="numero">#1045</td>
+          <td><a class="titulo-ticket" href="equipe-ticket.html">Sistema lento ao gerar relatório</a><br><span class="dica">Padaria Bom Pão</span></td>
+          <td>Erro no sistema</td>
+          <td><span class="prioridade p-urgente"><span class="barras" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Urgente</span></td>
+          <td><span class="situacao s-aberto">Aberto</span></td>
+          <td class="inativo">Ninguém</td>
+          <td><span class="situacao s-atrasado">Atrasado 2 h</span></td>
+          <td><a class="botao botao-pequeno" href="equipe-fila.html?aviso=assumido">Assumir</a></td>
+        </tr>
+        <tr>
+          <td class="numero">#1044</td>
+          <td><a class="titulo-ticket" href="equipe-ticket.html">Como cadastrar um novo usuário?</a><br><span class="dica">Loja Central</span></td>
+          <td>Dúvida</td>
+          <td><span class="prioridade p-media"><span class="barras" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Média</span></td>
+          <td><span class="situacao s-aberto">Aberto</span></td>
+          <td class="inativo">Ninguém</td>
+          <td>09/11, 15:00</td>
+          <td><a class="botao botao-pequeno" href="equipe-fila.html?aviso=assumido">Assumir</a></td>
+        </tr>
+        <tr>
+          <td class="numero">#1042</td>
+          <td><a class="titulo-ticket" href="equipe-ticket.html">Erro ao emitir nota fiscal</a><br><span class="dica">Maria Souza</span></td>
+          <td>Erro no sistema</td>
+          <td><span class="prioridade p-media"><span class="barras" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Média</span></td>
+          <td><span class="situacao s-atendimento">Em atendimento</span></td>
+          <td>Carlos Lima</td>
+          <td>08/11, 09:30</td>
+          <td><a class="botao botao-pequeno" href="equipe-ticket.html">Abrir</a></td>
+        </tr>
+        <tr>
+          <td class="numero">#1040</td>
+          <td><a class="titulo-ticket" href="equipe-ticket.html">Boleto não chegou por e-mail</a><br><span class="dica">Auto Peças Silva</span></td>
+          <td>Financeiro</td>
+          <td><span class="prioridade p-baixa"><span class="barras" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Baixa</span></td>
+          <td><span class="situacao s-aguardando">Aguardando cliente</span></td>
+          <td>Ana Reis</td>
+          <td>10/11, 11:00</td>
+          <td><a class="botao botao-pequeno" href="equipe-ticket.html">Abrir</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

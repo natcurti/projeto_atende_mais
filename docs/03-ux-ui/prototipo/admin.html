@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administração | atende+</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="prototipo-aviso">Protótipo navegável do atende+ com dados fictícios. <a href="index.html">Voltar ao início</a></div>
+<header class="topo">
+  <div class="topo-interno">
+    <a class="marca" href="equipe-fila.html">atende<span class="mais">+</span></a>
+    <nav class="menu" aria-label="Menu principal">
+      <a href="equipe-fila.html">Fila</a>
+      <a href="admin.html" aria-current="page">Administração</a>
+    </nav>
+    <div class="usuario"><span>Juliana Prado <small>Administradora</small></span><a href="index.html">Sair</a></div>
+  </div>
+</header>
+
+<main class="pagina">
+  <p class="aviso" data-aviso="usuario-criado" role="status" hidden>Usuário criado. Ele já pode entrar com o e-mail e a senha inicial.</p>
+  <div class="cabecalho-pagina">
+    <div>
+      <h1>Administração</h1>
+      <p class="subtitulo">Equipe de suporte e categorias de ticket.</p>
+    </div>
+  </div>
+
+  <div class="duas-colunas">
+    <section class="principal" aria-labelledby="titulo-usuarios">
+      <div class="cabecalho-pagina" style="margin-bottom:12px">
+        <h2 id="titulo-usuarios">Equipe</h2>
+        <div class="acoes"><a class="botao botao-principal" href="#novo-usuario">Adicionar pessoa</a></div>
+      </div>
+      <div class="tabela-caixa">
+        <table>
+          <thead><tr><th scope="col">Nome</th><th scope="col">E-mail</th><th scope="col">Perfil</th><th scope="col">Acesso</th><th scope="col"><span class="sr-only">Ações</span></th></tr></thead>
+          <tbody>
+            <tr><td><strong>Juliana Prado</strong></td><td>juliana@empresa.com</td><td>Administradora</td><td>Ativo</td><td><button class="botao-texto" type="button">Editar</button></td></tr>
+            <tr><td><strong>Carlos Lima</strong></td><td>carlos@empresa.com</td><td>Atendente</td><td>Ativo</td><td><button class="botao-texto" type="button">Editar</button></td></tr>
+            <tr><td><strong>Ana Reis</strong></td><td>ana@empresa.com</td><td>Atendente</td><td>Ativo</td><td><button class="botao-texto" type="button">Editar</button></td></tr>
+            <tr class="inativo"><td><strong>Pedro Alves</strong></td><td>pedro@empresa.com</td><td>Atendente</td><td>Desativado</td><td><button class="botao-texto" type="button">Reativar</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <form id="novo-usuario" class="painel formulario" style="margin-top:24px" action="admin.html">
+        <input type="hidden" name="aviso" value="usuario-criado">
+        <h2 style="margin:0">Adicionar pessoa à equipe</h2>
+        <div class="linha-campos">
+          <div class="campo"><label for="u-nome">Nome <span class="obrigatorio" aria-hidden="true">*</span></label><input id="u-nome" type="text" required></div>
+          <div class="campo"><label for="u-email">E-mail <span class="obrigatorio" aria-hidden="true">*</span></label><input id="u-email" type="email" required></div>
+        </div>
+        <div class="linha-campos">
+          <div class="campo"><label for="u-perfil">Perfil</label><select id="u-perfil"><option>Atendente</option><option>Administrador</option></select></div>
+          <div class="campo"><label for="u-senha">Senha inicial <span class="obrigatorio" aria-hidden="true">*</span></label><input id="u-senha" type="password" minlength="8" required></div>
+        </div>
+        <div class="acoes-formulario"><button class="botao" type="submit">Salvar pessoa</button></div>
+      </form>
+    </section>
+
+    <aside class="lateral" aria-labelledby="titulo-categorias">
+      <div class="painel">
+        <h2 id="titulo-categorias">Categorias</h2>
+        <table>
+          <thead><tr><th scope="col">Nome</th><th scope="col"><span class="sr-only">Ações</span></th></tr></thead>
+          <tbody>
+            <tr><td>Erro no sistema</td><td><button class="botao-texto" type="button">Editar</button></td></tr>
+            <tr><td>Dúvida</td><td><button class="botao-texto" type="button">Editar</button></td></tr>
+            <tr><td>Financeiro</td><td><button class="botao-texto" type="button">Editar</button></td></tr>
+            <tr class="inativo"><td>Treinamento (desativada)</td><td><button class="botao-texto" type="button">Reativar</button></td></tr>
+          </tbody>
+        </table>
+        <form class="formulario" style="margin-top:16px" onsubmit="return false">
+          <div class="campo"><label for="c-nome">Nova categoria</label><input id="c-nome" type="text" placeholder="Ex.: Integrações"></div>
+          <button class="botao" type="submit">Adicionar categoria</button>
+        </form>
+      </div>
+      <p class="dica">Pessoas e categorias não são excluídas, só desativadas. Assim, os tickets antigos continuam com o nome de quem atendeu e da categoria usada.</p>
+    </aside>
+  </div>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

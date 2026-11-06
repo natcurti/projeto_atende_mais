@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ticket #1042 | atende+</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="prototipo-aviso">Protótipo navegável do atende+ com dados fictícios. <a href="index.html">Voltar ao início</a></div>
+<header class="topo">
+  <div class="topo-interno">
+    <a class="marca" href="equipe-fila.html">atende<span class="mais">+</span></a>
+    <nav class="menu" aria-label="Menu principal">
+      <a href="equipe-fila.html" aria-current="page">Fila</a>
+      <a href="admin.html" data-so-admin hidden>Administração</a>
+    </nav>
+    <div class="usuario"><span data-nome-usuario>Carlos Lima <small>Atendente</small></span><a href="index.html">Sair</a></div>
+  </div>
+</header>
+
+<main class="pagina">
+  <p class="aviso" data-aviso="enviado" role="status" hidden>Mensagem registrada no ticket.</p>
+  <p class="aviso" data-aviso="salvo" role="status" hidden>Alterações salvas e registradas no histórico.</p>
+  <a class="voltar" href="equipe-fila.html">Voltar para a fila</a>
+  <div class="cabecalho-pagina">
+    <div>
+      <h1>#1042 Erro ao emitir nota fiscal</h1>
+      <p class="subtitulo"><span class="situacao s-atendimento">Em atendimento</span>&nbsp; Cliente: Maria Souza, de Souza Comércio ME</p>
+    </div>
+  </div>
+
+  <div class="duas-colunas">
+    <section class="principal" aria-label="Conversa">
+      <div class="conversa">
+        <article class="mensagem">
+          <header><strong>Maria Souza</strong><span class="papel">Cliente</span><time datetime="2026-11-05T09:30">05/11, 09:30</time></header>
+          <p>Ao clicar em "Emitir nota", aparece a mensagem "Falha na comunicação com a SEFAZ". Já tentei três vezes.</p>
+        </article>
+        <p class="evento">05/11, 10:02 · Carlos Lima assumiu · Aberto para Em atendimento</p>
+        <article class="mensagem mensagem-interna">
+          <header><span class="selo">Nota interna: o cliente não vê</span><strong>Carlos Lima</strong><time datetime="2026-11-05T10:04">05/11, 10:04</time></header>
+          <p>Parece o mesmo caso do certificado digital vencido do #1019. Confirmar com o print antes de responder.</p>
+        </article>
+        <article class="mensagem mensagem-equipe">
+          <header><strong>Carlos Lima</strong><span class="papel">Equipe de suporte</span><time datetime="2026-11-05T10:05">05/11, 10:05</time></header>
+          <p>Olá, Maria! Pode nos enviar um print da tela com o erro? Assim confirmamos a causa.</p>
+        </article>
+        <article class="mensagem">
+          <header><strong>Maria Souza</strong><span class="papel">Cliente</span><time datetime="2026-11-06T10:12">06/11, 10:12</time></header>
+          <p>Segue o print.</p>
+          <a class="anexo" href="#">print-erro.png (240 KB)</a>
+        </article>
+      </div>
+
+      <form class="formulario responder" action="equipe-ticket.html">
+        <input type="hidden" name="aviso" value="enviado">
+        <div>
+          <div class="alternador" role="group" aria-label="Tipo de mensagem">
+            <button type="button" data-modo="cliente" aria-pressed="true">Mensagem ao cliente</button>
+            <button type="button" data-modo="interna" aria-pressed="false">Nota interna</button>
+          </div>
+          <div class="campo">
+            <label for="resposta" data-rotulo-mensagem>Mensagem ao cliente</label>
+            <textarea id="resposta" required></textarea>
+          </div>
+        </div>
+        <div class="acoes-formulario">
+          <label class="botao" for="anexo-resposta">Anexar arquivo</label>
+          <input id="anexo-resposta" class="sr-only" type="file" accept=".jpg,.jpeg,.png,.pdf">
+          <button class="botao botao-principal" type="submit" data-botao-enviar>Enviar mensagem</button>
+        </div>
+      </form>
+    </section>
+
+    <aside class="lateral">
+      <form class="painel formulario" action="equipe-ticket.html">
+        <input type="hidden" name="aviso" value="salvo">
+        <h2 style="margin:0">Gerenciar ticket</h2>
+        <div class="campo">
+          <label for="g-atendente">Atendente</label>
+          <select id="g-atendente"><option>Carlos Lima</option><option>Ana Reis</option><option>Juliana Prado</option></select>
+        </div>
+        <div class="campo">
+          <label for="g-situacao">Situação</label>
+          <select id="g-situacao"><option>Em atendimento</option><option>Aguardando cliente</option><option>Resolvido</option></select>
+        </div>
+        <div class="campo">
+          <label for="g-prioridade">Prioridade</label>
+          <select id="g-prioridade" aria-describedby="dica-prazo"><option>Urgente (4 horas)</option><option>Alta (1 dia)</option><option selected>Média (3 dias)</option><option>Baixa (5 dias)</option></select>
+          <span class="dica" id="dica-prazo">Prazo atual: 08/11, 09:30. Muda junto com a prioridade.</span>
+        </div>
+        <button class="botao botao-largo" type="submit">Salvar alterações</button>
+      </form>
+      <div class="painel">
+        <h2>Detalhes</h2>
+        <dl class="info">
+          <dt>Categoria</dt><dd>Erro no sistema</dd>
+          <dt>Aberto em</dt><dd>05/11, 09:30</dd>
+          <dt>Cliente</dt><dd>maria@souzacomercio.com.br</dd>
+        </dl>
+      </div>
+    </aside>
+  </div>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>
