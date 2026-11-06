@@ -7,19 +7,24 @@ Projeto da disciplina do curso de **Análise e Desenvolvimento de Sistemas — F
 
 **Protótipo navegável:** https://natcurti.github.io/projeto_atende_mais/03-ux-ui/prototipo/
 
-## Entregas
+## Etapas do projeto
 
-| Nº | Entrega | Situação | Onde está |
+| Etapa | Entrega | Situação | Onde está |
 | --- | --- | --- | --- |
-| 1 | Levantamento de requisitos | Concluída | [docs/01-requisitos](docs/01-requisitos/) |
-| 2 | Wireframes | Concluída | [docs/02-wireframes](docs/02-wireframes/) |
-| 3 | UX/UI e protótipo navegável | Concluída | [docs/03-ux-ui](docs/03-ux-ui/) |
-| 4 | Banco de dados | Concluída | [docs/04-banco-de-dados](docs/04-banco-de-dados/) |
-| 5 | Repositório e versionamento | Concluída | [docs/05-repositorio](docs/05-repositorio/) |
-| 6 | Arquitetura e padrões | Concluída | [docs/06-arquitetura](docs/06-arquitetura/) |
-| 7 | Gerenciamento do projeto | A fazer | — |
-| 8 | Plano e execução de testes | A fazer | — |
-| 9 | Relatório técnico | A fazer | — |
+| 1 | Entrega 1: levantamento de requisitos | Concluída | [docs/01-requisitos](docs/01-requisitos/) |
+| 2 | Entrega 2: wireframes | Concluída | [docs/02-wireframes](docs/02-wireframes/) |
+| 3 | Entrega 3: UX/UI e protótipo navegável | Concluída | [docs/03-ux-ui](docs/03-ux-ui/) |
+| 4 | Entrega 4: banco de dados | Concluída | [docs/04-banco-de-dados](docs/04-banco-de-dados/) |
+| 5 | Entrega 5: repositório e versionamento | Concluída | [docs/05-repositorio](docs/05-repositorio/) |
+| 6 | Entrega 6: arquitetura e padrões | Concluída | [docs/06-arquitetura](docs/06-arquitetura/) |
+| 7 | Entrega 7: gerenciamento do projeto | Não realizada | — |
+| 8 | Checkpoint 1: definição do MVP | Concluída | [docs/08-mvp](docs/08-mvp/) |
+| 9 | Checkpoint 2: MVP funcional | A fazer | — |
+| 10 | Checkpoint 3: evolução | A fazer | — |
+| 11 | Checkpoint 4: nova versão | A fazer | — |
+| 12 | Entrega 8: plano e execução de testes | A fazer | — |
+| 13 | Checkpoint 5: release candidate | A fazer | — |
+| 14 | Entrega 9: relatório técnico | A fazer | — |
 
 ## Tecnologias
 
