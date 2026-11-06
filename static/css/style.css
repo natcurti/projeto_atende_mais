@@ -448,7 +448,7 @@ tr.linha-atrasada td:first-child { box-shadow: inset 4px 0 0 var(--atrasado-tx);
 @media (max-width: 640px) {
   h1 { font-size: 1.45rem; }
   .pagina { padding: 24px 16px 48px; }
-  .topo-interno { padding: 0 16px; }
+  .topo-interno { padding: 8px 16px 0; }
   .usuario { margin-left: 0; width: 100%; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.25); }
   .mensagem { max-width: 100%; }
   .painel { padding: 20px; }
@@ -457,3 +457,31 @@ tr.linha-atrasada td:first-child { box-shadow: inset 4px 0 0 var(--atrasado-tx);
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* ==========================================================
+   Acréscimos do sistema (não existiam no protótipo)
+   ========================================================== */
+
+/* Erros de formulário */
+.erro-campo { font-size: 0.875rem; font-weight: 700; color: var(--atrasado-tx); }
+.com-erro input, .com-erro select, .com-erro textarea { border: 2px solid var(--atrasado-tx); }
+.aviso-erro { background: var(--atrasado-bg); color: var(--atrasado-tx); }
+.formulario .aviso { margin-bottom: 0; }
+
+/* Botão Sair no topo: um formulário (POST) com aparência de link */
+.usuario form { margin: 0; }
+.botao-sair {
+  background: none; border: 0; padding: 4px 0; cursor: pointer;
+  font: inherit; color: #fff; text-decoration: underline; text-underline-offset: 3px;
+}
+.botao-sair:hover { color: var(--sinal-claro); }
+.botao-sair:focus-visible { outline-color: #fff; }
+
+/* Quadro do ambiente de demonstração na tela de entrada */
+.demonstracao {
+  width: 100%; max-width: 940px;
+  border: 1px dashed #8B9AA0; border-radius: var(--raio);
+  padding: 16px 20px; font-size: 0.95rem; color: var(--texto-suave); background: var(--superficie);
+}
+.demonstracao ul { margin: 8px 0 0; padding-left: 20px; }
+.demonstracao code { color: var(--texto); }

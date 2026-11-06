@@ -1,10 +1,19 @@
 from django.contrib.auth.base_user import BaseUserManager
 
 
+def normalizar_email(email):
+    """E-mails são guardados e comparados sempre em minúsculas, sem espaços nas pontas."""
+    return (email or "").strip().lower()
+
+
 class UsuarioManager(BaseUserManager):
     """Cria usuários do atende+, que entram pelo e-mail em vez de um nome de usuário."""
 
     use_in_migrations = True
+
+    def get_by_natural_key(self, email):
+        # Usado no login: encontra o usuário independentemente de maiúsculas.
+        return self.get(email=normalizar_email(email))
 
     def _criar(self, email, password, **campos):
         if not email:
@@ -12,7 +21,7 @@ class UsuarioManager(BaseUserManager):
         perfil = campos.get("perfil", self.model.Perfil.CLIENTE)
         if perfil == self.model.Perfil.CLIENTE and not campos.get("empresa"):
             raise ValueError("Clientes precisam informar a empresa.")
-        usuario = self.model(email=self.normalize_email(email), **campos)
+        usuario = self.model(email=normalizar_email(email), **campos)
         usuario.set_password(password)  # grava só o hash da senha (RNF03)
         usuario.save(using=self._db)
         return usuario
