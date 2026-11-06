@@ -16,7 +16,7 @@ Projeto da disciplina do curso de **Análise e Desenvolvimento de Sistemas — F
 | 3 | UX/UI e protótipo navegável | Concluída | [docs/03-ux-ui](docs/03-ux-ui/) |
 | 4 | Banco de dados | Concluída | [docs/04-banco-de-dados](docs/04-banco-de-dados/) |
 | 5 | Repositório e versionamento | Concluída | [docs/05-repositorio](docs/05-repositorio/) |
-| 6 | Arquitetura e padrões | A fazer | — |
+| 6 | Arquitetura e padrões | Concluída | [docs/06-arquitetura](docs/06-arquitetura/) |
 | 7 | Gerenciamento do projeto | A fazer | — |
 | 8 | Plano e execução de testes | A fazer | — |
 | 9 | Relatório técnico | A fazer | — |
@@ -25,34 +25,92 @@ Projeto da disciplina do curso de **Análise e Desenvolvimento de Sistemas — F
 
 | Camada | Tecnologia |
 | --- | --- |
-| Linguagem | Python |
-| Framework web | Django |
+| Linguagem | Python 3.10 a 3.13 (recomendado 3.12 ou mais recente) |
+| Framework web | Django 5.2 LTS |
 | Banco de dados | SQLite (arquivo único, sem servidor) |
 | Interface | HTML, CSS e JavaScript, a partir do protótipo da Entrega 3 |
 | Versionamento | Git e GitHub |
 
-As versões e a arquitetura são definidas na Entrega 6.
+Detalhes da arquitetura em [docs/06-arquitetura](docs/06-arquitetura/).
 
 ## Como rodar
 
-O código do sistema começa a ser escrito no MVP (Checkpoint 2), e esta seção vai trazer o passo a passo completo.
-Por enquanto, para baixar o projeto:
+Você precisa do [Python](https://www.python.org/downloads/) 3.10 ou mais recente e do [Git](https://git-scm.com/).
+Não é preciso instalar banco de dados: o SQLite já vem com o Python.
+
+**1. Baixar o projeto**
 
 ```bash
 git clone https://github.com/natcurti/projeto_atende_mais.git
 cd projeto_atende_mais
 ```
 
+**2. Criar e ativar um ambiente virtual** (isola as bibliotecas do projeto)
+
+| Sistema | Criar | Ativar |
+| --- | --- | --- |
+| Windows | `py -m venv .venv` | `.venv\Scripts\activate` |
+| Linux / macOS | `python3 -m venv .venv` | `source .venv/bin/activate` |
+
+Com o ambiente ativo, o terminal mostra `(.venv)` no começo da linha.
+
+**3. Instalar as dependências, criar o banco e carregar os dados de exemplo**
+
+```bash
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py carregar_dados_exemplo
+```
+
+**4. Iniciar o sistema**
+
+```bash
+python manage.py runserver
+```
+
+Abra **http://127.0.0.1:8000** no navegador. Para parar o servidor, use `Ctrl + C` no terminal.
+
+**Usuários de exemplo** (senha de todos: `atende123`):
+
+| Perfil | E-mail |
+| --- | --- |
+| Administrador | juliana@empresa.com |
+| Atendente | carlos@empresa.com |
+| Cliente | maria@souzacomercio.com.br |
+
+Enquanto as telas do MVP não ficam prontas, os dados podem ser vistos na área técnica do Django,
+em http://127.0.0.1:8000/admin, entrando como a administradora.
+
+**Testes automatizados**
+
+```bash
+python manage.py test
+```
+
+**Configuração opcional:** sem nenhuma configuração, o sistema roda em modo de desenvolvimento.
+Para mudar as opções (como no servidor de publicação), copie `.env.exemplo` com o nome `.env` e ajuste os valores.
+
+**Recomeçar o banco do zero:** apague o arquivo `db.sqlite3` e repita os comandos `migrate` e `carregar_dados_exemplo`.
+
 ## Organização do repositório
 
 ```
 projeto_atende_mais/
+├── config/                configurações do Django e rotas principais
+├── contas/                app de usuários (cliente, atendente, administrador)
+├── tickets/               app de atendimento (tickets, mensagens, regras de negócio)
+├── templates/             páginas HTML
+├── static/                CSS e JavaScript
+├── manage.py              comando de administração do Django
+├── requirements.txt       dependências
+├── .env.exemplo           modelo de configuração local
 ├── docs/                  documentação de cada entrega
 │   ├── 01-requisitos/
 │   ├── 02-wireframes/
 │   ├── 03-ux-ui/          inclui o protótipo navegável
 │   ├── 04-banco-de-dados/
-│   └── 05-repositorio/
+│   ├── 05-repositorio/
+│   └── 06-arquitetura/
 ├── .github/               modelo de pull request
 ├── .editorconfig          estilo dos arquivos
 ├── .gitattributes         quebras de linha padronizadas
