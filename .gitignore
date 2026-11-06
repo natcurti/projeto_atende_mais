@@ -1,0 +1,42 @@
+# ==========================================================
+# Arquivos que NÃO vão para o repositório
+# ==========================================================
+
+# --- Banco de dados ---
+# Cada máquina tem o seu próprio banco SQLite.
+*.sqlite3
+*.sqlite3-journal
+*.db
+
+# --- Segredos e configurações locais ---
+# O .env guarda a SECRET_KEY e outras configurações da máquina.
+# O modelo sem segredos é o .env.exemplo, que vai para o repositório.
+.env
+!.env.exemplo
+
+# --- Arquivos enviados pelos usuários (anexos dos tickets) ---
+media/
+
+# --- Arquivos gerados pelo Django ---
+staticfiles/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Ambiente virtual ---
+venv/
+.venv/
+env/
+
+# --- Editores e sistema operacional ---
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
