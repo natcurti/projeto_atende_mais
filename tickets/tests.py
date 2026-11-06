@@ -103,7 +103,7 @@ class DadosExemploTests(TestCase):
 
 
 class PaginaInicialTests(TestCase):
-    def test_pagina_inicial_abre(self):
-        resposta = self.client.get(reverse("inicio"))
+    def test_raiz_leva_para_a_tela_de_entrada(self):
+        resposta = self.client.get(reverse("inicio"), follow=True)
         self.assertEqual(resposta.status_code, 200)
-        self.assertContains(resposta, "atende")
+        self.assertContains(resposta, "Criar conta de cliente")
