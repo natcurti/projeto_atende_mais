@@ -76,7 +76,7 @@ Os requisitos não funcionais definem como o sistema deve se comportar. Cada um 
 | Código | Categoria | Requisito | Como verificar |
 | --- | --- | --- | --- |
 | RNF01 | Tecnologia | Desenvolvido em Python com o framework Django | Código-fonte no repositório |
-| RNF02 | Banco de dados | Dados guardados em banco relacional MariaDB 10.5+ ou MySQL 8.0.16+ | Configuração do projeto |
+| RNF02 | Banco de dados | Dados guardados em banco relacional SQLite (arquivo único, sem servidor); o modelo também é compatível com MariaDB/MySQL | Configuração do projeto |
 | RNF03 | Segurança | Senhas guardadas com criptografia (hash), nunca em texto puro | Consulta direta ao banco |
 | RNF04 | Segurança | Cada perfil acessa apenas as telas e os dados permitidos para ele | Teste de acesso com cada perfil |
 | RNF05 | Usabilidade | Interface em português, com no máximo 3 cliques para abrir um ticket a partir da tela inicial | Teste de navegação |
