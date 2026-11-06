@@ -10,24 +10,38 @@
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
+{% block topo %}
 <header class="topo">
   <div class="topo-interno">
     <a class="marca" href="{% url 'inicio' %}">atende<span class="mais">+</span></a>
-    <nav class="menu" aria-label="Menu principal">
-      {% block menu %}{% endblock %}
-    </nav>
-    <div class="usuario">
-      {% if user.is_authenticated %}
+    {% if user.is_authenticated %}
+      {% with atual=request.resolver_match.url_name %}
+      <nav class="menu" aria-label="Menu principal">
+        {% if user.eh_cliente %}
+          <a href="{% url 'tickets:meus_tickets' %}"{% if atual == 'meus_tickets' %} aria-current="page"{% endif %}>Meus tickets</a>
+        {% else %}
+          <a href="{% url 'tickets:fila' %}"{% if atual == 'fila' %} aria-current="page"{% endif %}>Fila</a>
+        {% endif %}
+      </nav>
+      {% endwith %}
+      <div class="usuario">
         <span>{{ user.nome }} <small>{{ user.get_perfil_display }}</small></span>
-      {% endif %}
-    </div>
+        <form method="post" action="{% url 'contas:sair' %}">
+          {% csrf_token %}
+          <button type="submit" class="botao-sair">Sair</button>
+        </form>
+      </div>
+    {% endif %}
   </div>
 </header>
+{% endblock %}
 
-<main class="pagina">
-  {% for mensagem in messages %}
-    <p class="aviso{% if mensagem.tags == 'info' %} aviso-info{% endif %}" role="status">{{ mensagem }}</p>
-  {% endfor %}
+<main class="{% block classe_pagina %}pagina{% endblock %}">
+  {% block avisos %}
+    {% for mensagem in messages %}
+      <p class="aviso{% if mensagem.tags == 'info' %} aviso-info{% elif mensagem.tags == 'error' %} aviso-erro{% endif %}" role="status">{{ mensagem }}</p>
+    {% endfor %}
+  {% endblock %}
   {% block conteudo %}{% endblock %}
 </main>
 </body>

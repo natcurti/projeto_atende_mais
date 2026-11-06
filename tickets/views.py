@@ -1,15 +1,15 @@
-from django.contrib.auth import get_user_model
 from django.shortcuts import render
 
-from .models import Categoria, Ticket
+from contas.permissoes import somente_cliente, somente_equipe
 
 
-def inicio(request):
-    """Página inicial provisória: mostra que o sistema e o banco estão funcionando."""
-    contexto = {
-        "tickets": Ticket.objects.select_related("cliente").order_by("-id")[:5],
-        "total_tickets": Ticket.objects.count(),
-        "total_usuarios": get_user_model().objects.count(),
-        "total_categorias": Categoria.objects.count(),
-    }
-    return render(request, "inicio.html", contexto)
+@somente_cliente
+def meus_tickets(request):
+    """Meus tickets (RF07). Provisória: a lista completa chega no F2."""
+    return render(request, "tickets/meus_tickets.html")
+
+
+@somente_equipe
+def fila(request):
+    """Fila de atendimento (RF08). Provisória: a fila completa chega no F3."""
+    return render(request, "tickets/fila.html")
