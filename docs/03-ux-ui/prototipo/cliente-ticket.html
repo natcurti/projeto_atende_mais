@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ticket #1042 | atende+</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="prototipo-aviso">Protótipo navegável do atende+ com dados fictícios. <a href="index.html">Voltar ao início</a></div>
+<header class="topo">
+  <div class="topo-interno">
+    <a class="marca" href="cliente-tickets.html">atende<span class="mais">+</span></a>
+    <nav class="menu" aria-label="Menu principal">
+      <a href="cliente-tickets.html" aria-current="page">Meus tickets</a>
+      <a href="cliente-novo-ticket.html">Abrir ticket</a>
+    </nav>
+    <div class="usuario"><span>Maria Souza <small>Cliente</small></span><a href="index.html">Sair</a></div>
+  </div>
+</header>
+
+<main class="pagina">
+  <p class="aviso" data-aviso="mensagem-enviada" role="status" hidden>Mensagem enviada. A equipe será avisada.</p>
+  <a class="voltar" href="cliente-tickets.html">Voltar para Meus tickets</a>
+  <div class="cabecalho-pagina">
+    <div>
+      <h1>#1042 Erro ao emitir nota fiscal</h1>
+      <p class="subtitulo"><span class="situacao s-atendimento">Em atendimento</span></p>
+    </div>
+  </div>
+
+  <div class="duas-colunas">
+    <section class="principal" aria-label="Conversa">
+      <div class="conversa">
+        <article class="mensagem">
+          <header><strong>Maria Souza</strong><time datetime="2026-11-05T09:30">05/11, 09:30</time></header>
+          <p>Ao clicar em "Emitir nota", aparece a mensagem "Falha na comunicação com a SEFAZ". Já tentei três vezes.</p>
+        </article>
+        <p class="evento">05/11, 10:02 · Carlos Lima assumiu o atendimento</p>
+        <article class="mensagem mensagem-equipe">
+          <header><strong>Carlos Lima</strong><span class="papel">Equipe de suporte</span><time datetime="2026-11-05T10:05">05/11, 10:05</time></header>
+          <p>Olá, Maria! Pode nos enviar um print da tela com o erro? Assim confirmamos a causa.</p>
+        </article>
+        <article class="mensagem">
+          <header><strong>Maria Souza</strong><time datetime="2026-11-06T10:12">06/11, 10:12</time></header>
+          <p>Segue o print.</p>
+          <a class="anexo" href="#">print-erro.png (240 KB)</a>
+        </article>
+      </div>
+
+      <form class="formulario responder" action="cliente-ticket.html">
+        <input type="hidden" name="aviso" value="mensagem-enviada">
+        <div class="campo">
+          <label for="resposta">Responder</label>
+          <textarea id="resposta" required placeholder="Escreva sua mensagem"></textarea>
+        </div>
+        <div class="acoes-formulario">
+          <label class="botao" for="anexo-resposta">Anexar arquivo</label>
+          <input id="anexo-resposta" class="sr-only" type="file" accept=".jpg,.jpeg,.png,.pdf">
+          <button class="botao botao-principal" type="submit">Enviar mensagem</button>
+        </div>
+      </form>
+    </section>
+
+    <aside class="lateral">
+      <div class="painel">
+        <h2>Detalhes</h2>
+        <dl class="info">
+          <dt>Categoria</dt><dd>Erro no sistema</dd>
+          <dt>Prioridade</dt><dd><span class="prioridade p-media"><span class="barras" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Média</span></dd>
+          <dt>Atendente</dt><dd>Carlos Lima</dd>
+          <dt>Aberto em</dt><dd>05/11, 09:30</dd>
+          <dt>Previsão</dt><dd>até 08/11, 09:30</dd>
+        </dl>
+      </div>
+    </aside>
+  </div>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

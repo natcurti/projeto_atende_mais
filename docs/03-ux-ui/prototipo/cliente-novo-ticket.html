@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Abrir ticket | atende+</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="prototipo-aviso">Protótipo navegável do atende+ com dados fictícios. <a href="index.html">Voltar ao início</a></div>
+<header class="topo">
+  <div class="topo-interno">
+    <a class="marca" href="cliente-tickets.html">atende<span class="mais">+</span></a>
+    <nav class="menu" aria-label="Menu principal">
+      <a href="cliente-tickets.html">Meus tickets</a>
+      <a href="cliente-novo-ticket.html" aria-current="page">Abrir ticket</a>
+    </nav>
+    <div class="usuario"><span>Maria Souza <small>Cliente</small></span><a href="index.html">Sair</a></div>
+  </div>
+</header>
+
+<main class="pagina">
+  <a class="voltar" href="cliente-tickets.html">Voltar para Meus tickets</a>
+  <div class="cabecalho-pagina">
+    <div>
+      <h1>Abrir ticket</h1>
+      <p class="subtitulo">Conte o que está acontecendo. Campos com * são obrigatórios.</p>
+    </div>
+  </div>
+
+  <div class="duas-colunas">
+    <section class="principal painel">
+      <form class="formulario" action="cliente-tickets.html">
+        <input type="hidden" name="aviso" value="ticket-enviado">
+        <div class="campo">
+          <label for="t-titulo">Título <span class="obrigatorio" aria-hidden="true">*</span></label>
+          <input id="t-titulo" type="text" maxlength="120" required aria-describedby="dica-titulo">
+          <span class="dica" id="dica-titulo">Resuma o problema em uma frase. Ex.: Erro ao emitir nota fiscal</span>
+        </div>
+        <div class="campo">
+          <label for="t-categoria">Categoria <span class="obrigatorio" aria-hidden="true">*</span></label>
+          <select id="t-categoria" required>
+            <option value="">Escolha uma categoria</option>
+            <option>Erro no sistema</option>
+            <option>Dúvida</option>
+            <option>Financeiro</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="t-descricao">Descrição <span class="obrigatorio" aria-hidden="true">*</span></label>
+          <textarea id="t-descricao" required aria-describedby="dica-descricao"></textarea>
+          <span class="dica" id="dica-descricao">O que você fez, o que esperava que acontecesse e o que aconteceu.</span>
+        </div>
+        <div class="campo">
+          <label for="t-anexo">Anexo (opcional)</label>
+          <input id="t-anexo" type="file" accept=".jpg,.jpeg,.png,.pdf" aria-describedby="dica-anexo">
+          <span class="dica" id="dica-anexo">JPG, PNG ou PDF, até 5 MB.</span>
+        </div>
+        <div class="acoes-formulario">
+          <a class="botao" href="cliente-tickets.html">Cancelar</a>
+          <button class="botao botao-principal" type="submit">Enviar ticket</button>
+        </div>
+      </form>
+    </section>
+
+    <aside class="lateral">
+      <div class="painel">
+        <h2>Para um atendimento mais rápido</h2>
+        <ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px">
+          <li>Diga em qual tela o problema aparece.</li>
+          <li>Copie a mensagem de erro, se houver.</li>
+          <li>Anexe um print da tela.</li>
+        </ul>
+      </div>
+      <div class="painel">
+        <h2>O que acontece depois</h2>
+        <p>Seu ticket recebe um número e entra na fila da equipe. Você acompanha cada resposta em Meus tickets.</p>
+      </div>
+    </aside>
+  </div>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

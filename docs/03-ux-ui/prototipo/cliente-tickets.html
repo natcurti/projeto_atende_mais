@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meus tickets | atende+</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="prototipo-aviso">Protótipo navegável do atende+ com dados fictícios. <a href="index.html">Voltar ao início</a></div>
+<header class="topo">
+  <div class="topo-interno">
+    <a class="marca" href="cliente-tickets.html">atende<span class="mais">+</span></a>
+    <nav class="menu" aria-label="Menu principal">
+      <a href="cliente-tickets.html" aria-current="page">Meus tickets</a>
+      <a href="cliente-novo-ticket.html">Abrir ticket</a>
+    </nav>
+    <div class="usuario"><span>Maria Souza <small>Cliente</small></span><a href="index.html">Sair</a></div>
+  </div>
+</header>
+
+<main class="pagina">
+  <p class="aviso" data-aviso="boas-vindas" role="status" hidden>Conta criada. Quando precisar de ajuda, abra um ticket.</p>
+  <p class="aviso" data-aviso="ticket-enviado" role="status" hidden>Ticket #1046 enviado. Você vai acompanhar o atendimento por aqui.</p>
+  <p class="aviso aviso-info" data-aviso="reaberto" role="status" hidden>Ticket #1031 reaberto. Ele voltou para a equipe de suporte.</p>
+
+  <div class="cabecalho-pagina">
+    <div>
+      <h1>Meus tickets</h1>
+      <p class="subtitulo">1 ticket espera uma resposta sua.</p>
+    </div>
+    <div class="acoes"><a class="botao botao-principal" href="cliente-novo-ticket.html">Abrir ticket</a></div>
+  </div>
+
+  <form class="filtros" role="search" onsubmit="return false">
+    <div class="campo busca">
+      <label for="busca">Buscar</label>
+      <input id="busca" type="search" placeholder="Número ou palavra do título">
+    </div>
+    <div class="campo">
+      <label for="filtro-situacao">Situação</label>
+      <select id="filtro-situacao">
+        <option>Todas</option><option>Aberto</option><option>Em atendimento</option>
+        <option>Aguardando cliente</option><option>Resolvido</option><option>Fechado</option>
+      </select>
+    </div>
+  </form>
+
+  <div class="tabela-caixa">
+    <table>
+      <caption class="sr-only">Seus tickets, do mais recente para o mais antigo</caption>
+      <thead>
+        <tr><th scope="col">Nº</th><th scope="col">Título</th><th scope="col">Categoria</th><th scope="col">Situação</th><th scope="col">Última atualização</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="numero">#1042</td>
+          <td><a class="titulo-ticket" href="cliente-ticket.html">Erro ao emitir nota fiscal</a></td>
+          <td>Erro no sistema</td>
+          <td><span class="situacao s-atendimento">Em atendimento</span></td>
+          <td>06/11, 10:12</td>
+        </tr>
+        <tr>
+          <td class="numero">#1038</td>
+          <td><a class="titulo-ticket" href="cliente-ticket.html">Dúvida sobre o relatório mensal</a></td>
+          <td>Dúvida</td>
+          <td><span class="situacao s-aguardando">Aguardando cliente</span></td>
+          <td>05/11, 16:40</td>
+        </tr>
+        <tr>
+          <td class="numero">#1031</td>
+          <td><a class="titulo-ticket" href="cliente-ticket-resolvido.html">Cobrança duplicada em outubro</a></td>
+          <td>Financeiro</td>
+          <td><span class="situacao s-resolvido">Resolvido</span></td>
+          <td>03/11, 09:05</td>
+        </tr>
+        <tr>
+          <td class="numero">#1027</td>
+          <td><a class="titulo-ticket" href="cliente-ticket-resolvido.html">Não consigo cadastrar produto</a></td>
+          <td>Erro no sistema</td>
+          <td><span class="situacao s-fechado">Fechado</span></td>
+          <td>28/10, 14:22</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

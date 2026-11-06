@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ticket #1031 | atende+</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="prototipo-aviso">Protótipo navegável do atende+ com dados fictícios. <a href="index.html">Voltar ao início</a></div>
+<header class="topo">
+  <div class="topo-interno">
+    <a class="marca" href="cliente-tickets.html">atende<span class="mais">+</span></a>
+    <nav class="menu" aria-label="Menu principal">
+      <a href="cliente-tickets.html" aria-current="page">Meus tickets</a>
+      <a href="cliente-novo-ticket.html">Abrir ticket</a>
+    </nav>
+    <div class="usuario"><span>Maria Souza <small>Cliente</small></span><a href="index.html">Sair</a></div>
+  </div>
+</header>
+
+<main class="pagina">
+  <p class="aviso" data-aviso="avaliado" role="status" hidden>Obrigado pela avaliação. Ela ajuda a equipe a melhorar o atendimento.</p>
+  <a class="voltar" href="cliente-tickets.html">Voltar para Meus tickets</a>
+  <div class="cabecalho-pagina">
+    <div>
+      <h1>#1031 Cobrança duplicada em outubro</h1>
+      <p class="subtitulo"><span class="situacao s-resolvido">Resolvido</span></p>
+    </div>
+  </div>
+
+  <div class="duas-colunas">
+    <section class="principal" aria-label="Conversa">
+      <div class="conversa">
+        <article class="mensagem">
+          <header><strong>Maria Souza</strong><time datetime="2026-11-01T14:10">01/11, 14:10</time></header>
+          <p>O boleto de outubro veio duas vezes no mesmo valor. Paguei só um. Podem verificar?</p>
+        </article>
+        <p class="evento">01/11, 15:00 · Ana Reis assumiu o atendimento</p>
+        <article class="mensagem mensagem-equipe">
+          <header><strong>Ana Reis</strong><span class="papel">Equipe de suporte</span><time datetime="2026-11-03T09:05">03/11, 09:05</time></header>
+          <p>Maria, confirmamos a duplicidade e cancelamos o segundo boleto. Não há nada pendente na sua conta.</p>
+        </article>
+        <p class="evento">03/11, 09:05 · Ticket marcado como resolvido</p>
+      </div>
+    </section>
+
+    <aside class="lateral">
+      <form class="painel" action="cliente-ticket-resolvido.html">
+        <input type="hidden" name="aviso" value="avaliado">
+        <h2>Como foi o atendimento?</h2>
+        <p class="dica">Escolha de 1 a 5 estrelas. A avaliação só pode ser feita uma vez.</p>
+        <div class="estrelas" role="group" aria-label="Nota de 1 a 5">
+          <button type="button" aria-label="1 estrela" aria-pressed="false">★</button>
+          <button type="button" aria-label="2 estrelas" aria-pressed="false">★</button>
+          <button type="button" aria-label="3 estrelas" aria-pressed="false">★</button>
+          <button type="button" aria-label="4 estrelas" aria-pressed="false">★</button>
+          <button type="button" aria-label="5 estrelas" aria-pressed="false">★</button>
+        </div>
+        <p class="dica" data-nota-escolhida aria-live="polite">Nenhuma nota escolhida</p>
+        <div class="campo" style="margin:16px 0">
+          <label for="comentario">Comentário (opcional)</label>
+          <textarea id="comentario" style="min-height:90px"></textarea>
+        </div>
+        <button class="botao botao-principal botao-largo" type="submit">Enviar avaliação</button>
+      </form>
+
+      <div class="painel">
+        <h2>O problema voltou?</h2>
+        <p style="margin-bottom:16px">Você pode reabrir este ticket até 10/11. Depois disso, ele é fechado e você precisa abrir um novo.</p>
+        <a class="botao botao-largo" href="cliente-tickets.html?aviso=reaberto">Reabrir ticket</a>
+      </div>
+    </aside>
+  </div>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

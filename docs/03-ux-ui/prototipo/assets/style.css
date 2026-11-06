@@ -427,6 +427,7 @@ tr.linha-atrasada td:first-child { box-shadow: inset 4px 0 0 var(--atrasado-tx);
   flex-wrap: wrap;
   gap: 24px;
   justify-content: center;
+  align-items: flex-start;
   width: 100%;
   max-width: 980px;
 }

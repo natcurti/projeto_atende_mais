@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrar | atende+</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="prototipo-aviso">Protótipo navegável do atende+ com dados fictícios. Nada é salvo.</div>
+
+<main class="entrada">
+  <div>
+    <div class="marca-grande">atende<span class="mais">+</span></div>
+    <p class="lema">Seu pedido de suporte, do primeiro contato à solução.</p>
+  </div>
+
+  <div class="entrada-cartoes">
+    <section class="painel" aria-labelledby="titulo-entrar">
+      <h2 id="titulo-entrar">Entrar</h2>
+      <form class="formulario" action="cliente-tickets.html">
+        <div class="campo">
+          <label for="login-email">E-mail</label>
+          <input id="login-email" type="email" autocomplete="email" placeholder="voce@empresa.com">
+        </div>
+        <div class="campo">
+          <label for="login-senha">Senha</label>
+          <input id="login-senha" type="password" autocomplete="current-password">
+        </div>
+        <button class="botao botao-principal botao-largo" type="submit">Entrar</button>
+        <a href="#" class="dica">Esqueci minha senha</a>
+      </form>
+    </section>
+
+    <section class="painel" aria-labelledby="titulo-cadastro">
+      <h2 id="titulo-cadastro">Criar conta de cliente</h2>
+      <form class="formulario" action="cliente-tickets.html">
+        <input type="hidden" name="aviso" value="boas-vindas">
+        <div class="campo">
+          <label for="cad-nome">Nome completo <span class="obrigatorio" aria-hidden="true">*</span></label>
+          <input id="cad-nome" type="text" autocomplete="name" required>
+        </div>
+        <div class="campo">
+          <label for="cad-email">E-mail <span class="obrigatorio" aria-hidden="true">*</span></label>
+          <input id="cad-email" type="email" autocomplete="email" required>
+        </div>
+        <div class="campo">
+          <label for="cad-empresa">Empresa <span class="obrigatorio" aria-hidden="true">*</span></label>
+          <input id="cad-empresa" type="text" autocomplete="organization" required>
+        </div>
+        <div class="linha-campos">
+          <div class="campo">
+            <label for="cad-senha">Senha <span class="obrigatorio" aria-hidden="true">*</span></label>
+            <input id="cad-senha" type="password" autocomplete="new-password" minlength="8" required aria-describedby="dica-senha">
+          </div>
+          <div class="campo">
+            <label for="cad-senha2">Confirmar senha <span class="obrigatorio" aria-hidden="true">*</span></label>
+            <input id="cad-senha2" type="password" autocomplete="new-password" required>
+          </div>
+        </div>
+        <p class="dica" id="dica-senha">A senha precisa ter pelo menos 8 caracteres.</p>
+        <button class="botao botao-largo" type="submit">Criar conta</button>
+        <p class="dica">Atendentes e administradores são cadastrados pelo administrador do sistema.</p>
+      </form>
+    </section>
+  </div>
+
+  <div class="atalhos">
+    <p>Atalhos para navegar pelo protótipo sem preencher o login:</p>
+    <div class="lista">
+      <a class="botao botao-pequeno" href="cliente-tickets.html" data-perfil="cliente">Entrar como cliente</a>
+      <a class="botao botao-pequeno" href="equipe-fila.html" data-perfil="atendente">Entrar como atendente</a>
+      <a class="botao botao-pequeno" href="equipe-fila.html" data-perfil="admin">Entrar como administrador</a>
+      <a class="botao-texto" href="guia-de-estilo.html">Ver o guia de estilo</a>
+    </div>
+  </div>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>
