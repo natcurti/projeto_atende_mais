@@ -1,25 +1,26 @@
 -- ==========================================================
--- atende+ — consultas de exemplo (Entrega 4)
+-- atende+ — consultas de exemplo em SQLite (Entrega 4)
 -- Mostram que o modelo responde às perguntas das telas.
--- Executar depois de schema.sql e dados-exemplo.sql.
+-- Executar depois de schema.sql e dados-exemplo.sql:
+--   sqlite3 -header -column atende_mais.db ".read consultas-exemplo.sql"
 -- ==========================================================
 
 -- 1. Fila de atendimento (RF08, RN10): tickets não resolvidos, atrasados primeiro, depois por prazo.
-SELECT t.id                                 AS numero,
+SELECT t.id                              AS numero,
        t.titulo,
-       c.empresa                            AS cliente,
-       cat.nome                             AS categoria,
+       c.empresa                         AS cliente,
+       cat.nome                          AS categoria,
        t.prioridade,
        t.situacao,
-       COALESCE(a.nome, 'Ninguém')          AS atendente,
-       DATE_FORMAT(t.prazo, '%d/%m %H:%i')  AS prazo,
-       (t.prazo < NOW())                    AS atrasado
+       COALESCE(a.nome, 'Ninguém')       AS atendente,
+       strftime('%d/%m %H:%M', t.prazo)  AS prazo,
+       (t.prazo < datetime('now'))       AS atrasado
 FROM ticket t
 JOIN usuario   c   ON c.id = t.cliente_id
 JOIN categoria cat ON cat.id = t.categoria_id
 LEFT JOIN usuario a ON a.id = t.atendente_id
 WHERE t.situacao IN ('aberto', 'em_atendimento', 'aguardando_cliente')
-ORDER BY (t.prazo < NOW()) DESC, t.prazo;
+ORDER BY (t.prazo < datetime('now')) DESC, t.prazo;
 
 -- 2. Meus tickets (RF07, RN08): só os tickets da cliente Maria Souza (id 5).
 SELECT t.id AS numero, t.titulo, cat.nome AS categoria, t.situacao, t.atualizado_em
@@ -29,7 +30,7 @@ WHERE t.cliente_id = 5
 ORDER BY t.atualizado_em DESC;
 
 -- 3. Conversa do ticket #1003 como o CLIENTE vê (RN08): sem notas internas.
-SELECT DATE_FORMAT(m.criada_em, '%d/%m %H:%i') AS quando, u.nome AS autor, m.texto
+SELECT strftime('%d/%m %H:%M', m.criada_em) AS quando, u.nome AS autor, m.texto
 FROM mensagem m
 JOIN usuario u ON u.id = m.autor_id
 WHERE m.ticket_id = 1003 AND m.interna = FALSE
@@ -44,7 +45,7 @@ ORDER BY quantidade DESC;
 -- 5. Indicador: tempo médio de resolução por categoria, em horas (RF18).
 SELECT cat.nome AS categoria,
        COUNT(*) AS resolvidos,
-       ROUND(AVG(TIMESTAMPDIFF(MINUTE, t.aberto_em, t.resolvido_em)) / 60, 1) AS horas_em_media
+       ROUND(AVG((julianday(t.resolvido_em) - julianday(t.aberto_em)) * 24), 1) AS horas_em_media
 FROM ticket t
 JOIN categoria cat ON cat.id = t.categoria_id
 WHERE t.resolvido_em IS NOT NULL

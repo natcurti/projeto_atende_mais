@@ -1,7 +1,7 @@
 -- ==========================================================
 -- atende+ — dados de exemplo (Entrega 4)
 -- Os mesmos personagens e tickets do protótipo da Entrega 3.
--- Executar depois de schema.sql.
+-- Executar depois de schema.sql. Funciona no SQLite e no MariaDB/MySQL.
 -- Para facilitar a leitura, as datas abaixo estão no horário de Brasília.
 -- ==========================================================
 
