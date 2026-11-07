@@ -1,10 +1,11 @@
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
 from contas.permissoes import somente_cliente, somente_equipe
 
 from . import services
-from .forms import NovoTicketForm, RespostaForm
+from .forms import FiltroFilaForm, NovoTicketForm, RespostaForm
 from .models import Ticket
 
 
@@ -80,7 +81,30 @@ def ticket_cliente(request, numero):
 
 # ---------- Equipe ----------
 
+TICKETS_POR_PAGINA = 20
+
+
 @somente_equipe
 def fila(request):
-    """Fila de atendimento (RF08). Provisória: a fila completa chega no F3."""
-    return render(request, "tickets/fila.html")
+    """
+    Fila de atendimento (RF08): atrasados primeiro, depois o prazo mais próximo (RN10),
+    com contadores por situação e filtros combináveis. Paginada para continuar rápida com
+    muitos tickets (RNF07).
+    """
+    filtro = FiltroFilaForm(request.GET)
+    tickets = services.fila_de_atendimento(request.user, **filtro.filtros)
+    pagina = Paginator(tickets, TICKETS_POR_PAGINA).get_page(request.GET.get("pagina"))
+
+    # Mantém os filtros nos links de paginação.
+    parametros = request.GET.copy()
+    parametros.pop("pagina", None)
+
+    contexto = {
+        "filtro": filtro,
+        "pagina": pagina,
+        "contadores": services.contadores_da_fila(),
+        "parametros": parametros.urlencode(),
+        "situacao_atual": filtro.filtros.get("situacao", ""),
+        "so_atrasados": filtro.filtros.get("so_atrasados", False),
+    }
+    return render(request, "tickets/fila.html", contexto)
