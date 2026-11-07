@@ -1,0 +1,21 @@
+{% comment %}
+Conversa do ticket: mensagens e eventos em ordem cronológica.
+Recebe `conversa` (lista de services.ItemDaConversa). Também será usada na tela da equipe (F4).
+{% endcomment %}
+<div class="conversa">
+  {% for item in conversa %}
+    {% if item.tipo == "evento" %}
+      <p class="evento">{{ item.quando|date:"d/m, H:i" }} · {{ item.texto }}</p>
+    {% else %}
+      <article class="mensagem{% if item.interna %} mensagem-interna{% elif item.da_equipe %} mensagem-equipe{% endif %}">
+        <header>
+          {% if item.interna %}<span class="selo">Nota interna: o cliente não vê</span>{% endif %}
+          <strong>{{ item.autor.nome }}</strong>
+          {% if item.da_equipe and not item.interna %}<span class="papel">Equipe de suporte</span>{% endif %}
+          <time datetime="{{ item.quando|date:'c' }}">{{ item.quando|date:"d/m, H:i" }}</time>
+        </header>
+        <p class="texto-mensagem">{{ item.texto|linebreaksbr }}</p>
+      </article>
+    {% endif %}
+  {% endfor %}
+</div>

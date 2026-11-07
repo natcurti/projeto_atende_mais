@@ -1,0 +1,2 @@
+{# Etiqueta colorida da situação do ticket. Uso: {% include "includes/situacao.html" with t=ticket %} #}
+<span class="situacao s-{{ t.situacao }}">{{ t.get_situacao_display }}</span>

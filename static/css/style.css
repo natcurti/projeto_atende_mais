@@ -485,3 +485,34 @@ tr.linha-atrasada td:first-child { box-shadow: inset 4px 0 0 var(--atrasado-tx);
 }
 .demonstracao ul { margin: 8px 0 0; padding-left: 20px; }
 .demonstracao code { color: var(--texto); }
+
+/* Estado vazio (lista sem tickets) */
+.vazio { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.vazio h2 { margin: 0; }
+
+/* Lista de dicas na lateral */
+.lista-dicas { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+
+/* Texto das mensagens: quebra palavras muito longas (ex.: links) no celular */
+.texto-mensagem { overflow-wrap: anywhere; }
+
+/* Tabela que vira lista de cartões no celular: cada linha mostra
+   número e título em cima, e situação e detalhes embaixo. */
+.so-celular { display: none; }
+@media (max-width: 640px) {
+  .tabela-responsiva thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .tabela-responsiva tbody tr {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
+    padding: 14px 16px; border-bottom: 1px solid #E3E9EB;
+  }
+  .tabela-responsiva tbody tr:last-child { border-bottom: 0; }
+  .tabela-responsiva td { padding: 0; border: 0; }
+  .tabela-responsiva .col-numero { order: 1; }
+  .tabela-responsiva .col-titulo { order: 2; flex: 1 1 60%; }
+  .tabela-responsiva .col-situacao { order: 3; flex-basis: 100%; }
+  .tabela-responsiva .col-detalhe { order: 4; font-size: 0.875rem; color: var(--texto-suave); }
+  .tabela-responsiva .so-celular { display: inline; }
+}
+
+/* Filtro de um campo só (Meus tickets) */
+.filtros.compacto { max-width: 320px; }

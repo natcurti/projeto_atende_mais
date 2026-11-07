@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block titulo %}Abrir ticket{% endblock %}
+
+{% block conteudo %}
+<a class="voltar" href="{% url 'tickets:meus_tickets' %}">Voltar para Meus tickets</a>
+<div class="cabecalho-pagina">
+  <div>
+    <h1>Abrir ticket</h1>
+    <p class="subtitulo">Conte o que está acontecendo. Campos com * são obrigatórios.</p>
+  </div>
+</div>
+
+<div class="duas-colunas">
+  <section class="principal painel">
+    <form class="formulario" method="post" novalidate>
+      {% csrf_token %}
+      {% for erro in form.non_field_errors %}<p class="aviso aviso-erro" role="alert">{{ erro }}</p>{% endfor %}
+      {% include "includes/campo.html" with campo=form.titulo %}
+      {% include "includes/campo.html" with campo=form.categoria %}
+      {% include "includes/campo.html" with campo=form.descricao %}
+      <div class="acoes-formulario">
+        <a class="botao" href="{% url 'tickets:meus_tickets' %}">Cancelar</a>
+        <button class="botao botao-principal" type="submit">Enviar ticket</button>
+      </div>
+    </form>
+  </section>
+
+  <aside class="lateral">
+    <div class="painel">
+      <h2>Para um atendimento mais rápido</h2>
+      <ul class="lista-dicas">
+        <li>Diga em qual tela o problema aparece.</li>
+        <li>Copie a mensagem de erro, se houver.</li>
+        <li>Conte o que você já tentou fazer.</li>
+      </ul>
+    </div>
+    <div class="painel">
+      <h2>O que acontece depois</h2>
+      <p>Seu ticket recebe um número e entra na fila da equipe. Você acompanha cada resposta em Meus tickets.</p>
+    </div>
+  </aside>
+</div>
+{% endblock %}
