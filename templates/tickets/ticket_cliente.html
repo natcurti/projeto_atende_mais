@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load atende %}
 
 {% block titulo %}Ticket {{ ticket.numero }}{% endblock %}
 
@@ -35,6 +36,31 @@
   </section>
 
   <aside class="lateral">
+    {% if form_avaliacao %}
+      <form class="painel formulario" method="post" action="{% url 'tickets:avaliar' ticket.pk %}" novalidate>
+        {% csrf_token %}
+        <h2 style="margin:0">Como foi o atendimento?</h2>
+        <fieldset class="estrelas-avaliacao">
+          <legend>Escolha de 1 a 5 estrelas</legend>
+          <div class="estrelas-grupo">
+            {% for opcao in form_avaliacao.nota reversed %}
+              {{ opcao.tag }}
+              <label for="{{ opcao.id_for_label }}" title="{{ opcao.choice_label }}"><span aria-hidden="true">★</span><span class="sr-only">{{ opcao.choice_label }}</span></label>
+            {% endfor %}
+          </div>
+        </fieldset>
+        {% include "includes/campo.html" with campo=form_avaliacao.comentario %}
+        <button class="botao botao-principal botao-largo" type="submit">Enviar avaliação</button>
+        <p class="dica">A avaliação só pode ser feita uma vez.</p>
+      </form>
+    {% elif avaliacao %}
+      <div class="painel">
+        <h2>Sua avaliação</h2>
+        <p class="estrelas-nota" aria-label="Nota {{ avaliacao.nota }} de 5"><span aria-hidden="true">{{ avaliacao.nota|estrelas }}</span> {{ avaliacao.nota }} de 5</p>
+        {% if avaliacao.comentario %}<p class="texto-mensagem">"{{ avaliacao.comentario }}"</p>{% endif %}
+        <p class="dica">Avaliado em {{ avaliacao.avaliado_em|date:"d/m/Y" }}. Obrigado!</p>
+      </div>
+    {% endif %}
     <div class="painel">
       <h2>Detalhes</h2>
       <dl class="info">

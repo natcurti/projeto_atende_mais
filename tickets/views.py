@@ -8,9 +8,10 @@ from contas.permissoes import somente_administrador, somente_cliente, somente_eq
 
 from . import services
 from .forms import (
-    CategoriaForm, FiltroFilaForm, GerenciarTicketForm, MensagemEquipeForm, NovoTicketForm, RespostaForm,
+    AvaliacaoForm, CategoriaForm, FiltroFilaForm, GerenciarTicketForm,
+    MensagemEquipeForm, NovoTicketForm, RespostaForm,
 )
-from .models import Categoria, Ticket
+from .models import Avaliacao, Categoria, Ticket
 
 
 # ---------- Cliente ----------
@@ -79,8 +80,28 @@ def ticket_cliente(request, numero):
         "ticket": ticket,
         "conversa": services.linha_do_tempo(ticket, para_equipe=False),
         "form": form,
+        "avaliacao": Avaliacao.objects.filter(ticket=ticket).first(),
+        "form_avaliacao": AvaliacaoForm() if services.pode_avaliar(request.user, ticket) else None,
     }
     return render(request, "tickets/ticket_cliente.html", contexto)
+
+
+@somente_cliente
+@require_POST
+def avaliar_ticket(request, numero):
+    """RF16, RN11: a cliente avalia o atendimento de um ticket resolvido, uma única vez."""
+    ticket = get_object_or_404(Ticket, pk=numero, cliente=request.user)
+    form = AvaliacaoForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, " ".join(e for erros in form.errors.values() for e in erros))
+        return redirect("tickets:ticket_cliente", numero=ticket.pk)
+    try:
+        services.avaliar(ticket, request.user, form.cleaned_data["nota"], form.cleaned_data["comentario"])
+    except services.RegraDeNegocioError as erro:
+        messages.error(request, str(erro))
+    else:
+        messages.success(request, "Obrigado pela avaliação. Ela ajuda a equipe a melhorar o atendimento.")
+    return redirect("tickets:ticket_cliente", numero=ticket.pk)
 
 
 # ---------- Equipe ----------
