@@ -26,7 +26,7 @@ Veja o [Checkpoint 2](docs/09-mvp-funcional/) e os [Checkpoints 3 e 4](docs/10-e
 | 9 | Checkpoint 2: MVP funcional (`v0.1.0`) | Concluída | [docs/09-mvp-funcional](docs/09-mvp-funcional/) |
 | 10 | Checkpoint 3: evolução | Concluída | [docs/10-evolucao](docs/10-evolucao/) |
 | 11 | Checkpoint 4: nova versão (`v0.2.0`) | Concluída | [docs/10-evolucao](docs/10-evolucao/) |
-| 12 | Entrega 8: plano e execução de testes | A fazer | — |
+| 12 | Entrega 8: plano e execução de testes | Concluída | [docs/11-testes](docs/11-testes/) |
 | 13 | Checkpoint 5: release candidate | A fazer | — |
 | 14 | Entrega 9: relatório técnico | A fazer | — |
 
@@ -101,6 +101,8 @@ entrando como a administradora.
 python manage.py test
 ```
 
+O plano de testes, os casos, os resultados e o registro de bugs estão em [docs/11-testes](docs/11-testes/).
+
 **Configuração opcional:** sem nenhuma configuração, o sistema roda em modo de desenvolvimento.
 Para mudar as opções (como no servidor de publicação), copie `.env.exemplo` com o nome `.env` e ajuste os valores.
 
@@ -128,8 +130,10 @@ projeto_atende_mais/
 │   ├── 06-arquitetura/
 │   ├── 08-mvp/            Checkpoint 1: definição do MVP
 │   ├── 09-mvp-funcional/  Checkpoint 2: MVP funcional, com capturas de tela
-│   └── 10-evolucao/       Checkpoints 3 e 4: evolução e versão v0.2.0
+│   ├── 10-evolucao/       Checkpoints 3 e 4: evolução e versão v0.2.0
+│   └── 11-testes/         Entrega 8: plano, casos, execução e registro de bugs
 ├── .github/               modelo de pull request
+├── .coveragerc            configuração da medição de cobertura dos testes
 ├── .editorconfig          estilo dos arquivos
 ├── .gitattributes         quebras de linha padronizadas
 └── .gitignore             arquivos que não vão para o repositório
