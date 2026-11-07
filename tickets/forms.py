@@ -113,3 +113,22 @@ class GerenciarTicketForm(forms.Form):
                 self.fields["atendente"].empty_label = "Ninguém ainda"
         else:
             del self.fields["atendente"]
+
+
+class CategoriaForm(forms.ModelForm):
+    """Cadastro e renomeação de categorias (RF05)."""
+
+    class Meta:
+        model = Categoria
+        fields = ["nome"]
+        labels = {"nome": "Nome da categoria"}
+        widgets = {"nome": forms.TextInput(attrs={"placeholder": "Ex.: Integrações", "maxlength": 60})}
+
+    def clean_nome(self):
+        nome = " ".join(self.cleaned_data["nome"].split())  # tira espaços repetidos
+        # A comparação é feita no Python porque o SQLite só ignora maiúsculas em letras sem acento
+        # ("DÚVIDA" e "Dúvida" seriam diferentes para ele). As categorias são poucas.
+        outras = Categoria.objects.exclude(pk=self.instance.pk).values_list("nome", flat=True)
+        if any(existente.casefold() == nome.casefold() for existente in outras):
+            raise forms.ValidationError("Já existe uma categoria com este nome.")
+        return nome
