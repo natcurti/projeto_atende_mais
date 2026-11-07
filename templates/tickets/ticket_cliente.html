@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block titulo %}Ticket {{ ticket.numero }}{% endblock %}
+
+{% block conteudo %}
+<a class="voltar" href="{% url 'tickets:meus_tickets' %}">Voltar para Meus tickets</a>
+<div class="cabecalho-pagina">
+  <div>
+    <h1>{{ ticket.numero }} {{ ticket.titulo }}</h1>
+    <p class="subtitulo">{% include "includes/situacao.html" with t=ticket %}</p>
+  </div>
+</div>
+
+<div class="duas-colunas">
+  <section class="principal" aria-label="Conversa">
+    {% include "tickets/includes/conversa.html" %}
+
+    {% if ticket.aceita_resposta %}
+      <form class="formulario responder" method="post" novalidate>
+        {% csrf_token %}
+        {% include "includes/campo.html" with campo=form.texto %}
+        <div class="acoes-formulario">
+          <button class="botao botao-principal" type="submit">Enviar mensagem</button>
+        </div>
+      </form>
+    {% else %}
+      <div class="painel responder">
+        {% if ticket.situacao == "fechado" %}
+          <p>Este ticket está fechado. Se precisar de ajuda de novo, <a href="{% url 'tickets:novo_ticket' %}">abra um novo ticket</a>.</p>
+        {% else %}
+          <p>Este ticket foi resolvido. Se o problema voltar, <a href="{% url 'tickets:novo_ticket' %}">abra um novo ticket</a>.</p>
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+
+  <aside class="lateral">
+    <div class="painel">
+      <h2>Detalhes</h2>
+      <dl class="info">
+        <dt>Categoria</dt><dd>{{ ticket.categoria }}</dd>
+        <dt>Prioridade</dt><dd>{% include "includes/prioridade.html" with t=ticket %}</dd>
+        <dt>Atendente</dt><dd>{{ ticket.atendente.nome|default:"Aguardando a equipe" }}</dd>
+        <dt>Aberto em</dt><dd>{{ ticket.aberto_em|date:"d/m/Y, H:i" }}</dd>
+        {% if ticket.resolvido_em %}
+          <dt>Resolvido em</dt><dd>{{ ticket.resolvido_em|date:"d/m/Y, H:i" }}</dd>
+        {% else %}
+          <dt>Previsão</dt><dd>até {{ ticket.prazo|date:"d/m, H:i" }}</dd>
+        {% endif %}
+      </dl>
+    </div>
+  </aside>
+</div>
+{% endblock %}
