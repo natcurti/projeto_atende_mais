@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load atende %}
+
+{% block titulo %}Ticket {{ ticket.numero }}{% endblock %}
+
+{% block conteudo %}
+<a class="voltar" href="{% url 'tickets:fila' %}">Voltar para a fila</a>
+<div class="cabecalho-pagina">
+  <div>
+    <h1>{{ ticket.numero }} {{ ticket.titulo }}</h1>
+    <p class="subtitulo">
+      {% include "includes/situacao.html" with t=ticket %}
+      {% if ticket.atrasado %}<span class="situacao s-atrasado">Atrasado há {{ ticket.prazo|tempo_curto }}</span>{% endif %}
+      &nbsp;Cliente: {{ ticket.cliente.nome }}, de {{ ticket.cliente.empresa }}
+    </p>
+  </div>
+</div>
+
+<div class="duas-colunas">
+  <section class="principal" aria-label="Conversa">
+    {% include "tickets/includes/conversa.html" %}
+
+    {% if not ticket.aceita_resposta %}
+      <div class="painel responder">
+        <p>Este ticket está {{ ticket.get_situacao_display|lower }}{% if ticket.resolvido_em %} desde {{ ticket.resolvido_em|date:"d/m/Y, H:i" }}{% endif %} e não recebe novas mensagens.</p>
+      </div>
+    {% elif pode_atuar %}
+      <form class="formulario responder" method="post" novalidate>
+        {% csrf_token %}
+        {% include "includes/campo.html" with campo=form.texto %}
+        <div class="acoes-formulario">
+          <button class="botao botao-principal" type="submit">Enviar mensagem</button>
+        </div>
+      </form>
+    {% elif ticket.situacao == "aberto" %}
+      <div class="painel responder destaque-acao">
+        <p>Este ticket ainda não tem atendente. Assuma o ticket para responder ao cliente.</p>
+        <form method="post" action="{% url 'tickets:assumir' ticket.pk %}">
+          {% csrf_token %}
+          <button class="botao botao-principal" type="submit">Assumir ticket</button>
+        </form>
+      </div>
+    {% else %}
+      <div class="painel responder">
+        <p>{{ motivo }}</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <aside class="lateral">
+    {% if gerenciar %}
+      <form class="painel formulario" method="post" action="{% url 'tickets:gerenciar' ticket.pk %}">
+        {% csrf_token %}
+        <h2 style="margin:0">Gerenciar ticket</h2>
+        {% if gerenciar.atendente %}{% include "includes/campo.html" with campo=gerenciar.atendente %}{% endif %}
+        {% if pode_atuar %}
+          {% include "includes/campo.html" with campo=gerenciar.situacao %}
+        {% else %}
+          <input type="hidden" name="situacao" value="{{ ticket.situacao }}">
+        {% endif %}
+        <button class="botao botao-largo" type="submit">Salvar alterações</button>
+        <p class="dica">Cada alteração fica registrada na conversa do ticket.</p>
+      </form>
+    {% endif %}
+
+    <div class="painel">
+      <h2>Detalhes</h2>
+      <dl class="info">
+        <dt>Categoria</dt><dd>{{ ticket.categoria }}</dd>
+        <dt>Prioridade</dt><dd>{% include "includes/prioridade.html" with t=ticket %}</dd>
+        <dt>Atendente</dt><dd>{{ ticket.atendente.nome|default:"Ninguém ainda" }}</dd>
+        <dt>Aberto em</dt><dd>{{ ticket.aberto_em|date:"d/m/Y, H:i" }}</dd>
+        {% if ticket.resolvido_em %}
+          <dt>Resolvido em</dt><dd>{{ ticket.resolvido_em|date:"d/m/Y, H:i" }}</dd>
+        {% else %}
+          <dt>Prazo</dt><dd>{{ ticket.prazo|date:"d/m/Y, H:i" }}</dd>
+        {% endif %}
+        <dt>E-mail</dt><dd class="quebra">{{ ticket.cliente.email }}</dd>
+      </dl>
+    </div>
+  </aside>
+</div>
+{% endblock %}

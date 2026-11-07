@@ -3,6 +3,7 @@ from django import forms
 from contas.models import Usuario
 
 from .models import Categoria, Ticket
+from .services import situacoes_possiveis
 
 
 class NovoTicketForm(forms.ModelForm):
@@ -82,3 +83,33 @@ class FiltroFilaForm(forms.Form):
     @property
     def tem_filtro(self):
         return any(self.filtros.values())
+
+
+class GerenciarTicketForm(forms.Form):
+    """
+    Painel "Gerenciar ticket" (RF10, RF11).
+    A situação só oferece as mudanças permitidas agora; o atendente só aparece para administradores.
+    """
+
+    situacao = forms.ChoiceField(label="Situação")
+    atendente = forms.ModelChoiceField(label="Atendente", queryset=Usuario.objects.none(), empty_label=None)
+
+    def __init__(self, *args, ticket, usuario, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.ticket = ticket
+        atual = Ticket.Situacao(ticket.situacao)
+        self.fields["situacao"].choices = [
+            (atual.value, atual.label), *[(s.value, s.label) for s in situacoes_possiveis(ticket)]
+        ]
+        self.fields["situacao"].initial = atual.value
+
+        if usuario.perfil == Usuario.Perfil.ADMINISTRADOR:
+            self.fields["atendente"].queryset = Usuario.objects.filter(
+                perfil__in=[Usuario.Perfil.ATENDENTE, Usuario.Perfil.ADMINISTRADOR], is_active=True
+            ).order_by("nome")
+            self.fields["atendente"].initial = ticket.atendente_id
+            if ticket.atendente_id is None:
+                self.fields["atendente"].required = False
+                self.fields["atendente"].empty_label = "Ninguém ainda"
+        else:
+            del self.fields["atendente"]
