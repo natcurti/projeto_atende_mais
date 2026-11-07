@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load atende %}
 
 {% block titulo %}Fila de atendimento{% endblock %}
 
@@ -6,7 +7,90 @@
 <div class="cabecalho-pagina">
   <div>
     <h1>Fila de atendimento</h1>
-    <p class="subtitulo">Olá, {{ user.nome }}. A fila completa chega na próxima etapa do MVP (F3).</p>
+    <p class="subtitulo">Atrasados aparecem primeiro; depois, os de prazo mais próximo.</p>
   </div>
 </div>
+
+<nav class="contadores" aria-label="Resumo da fila">
+  <a class="contador" href="?situacao=aberto"{% if situacao_atual == "aberto" %} aria-current="true"{% endif %}>
+    <strong>{{ contadores.abertos }}</strong><span class="situacao s-aberto">Abertos</span>
+  </a>
+  <a class="contador" href="?situacao=em_atendimento"{% if situacao_atual == "em_atendimento" %} aria-current="true"{% endif %}>
+    <strong>{{ contadores.em_atendimento }}</strong><span class="situacao s-em_atendimento">Em atendimento</span>
+  </a>
+  <a class="contador" href="?situacao=aguardando_cliente"{% if situacao_atual == "aguardando_cliente" %} aria-current="true"{% endif %}>
+    <strong>{{ contadores.aguardando_cliente }}</strong><span class="situacao s-aguardando_cliente">Aguardando cliente</span>
+  </a>
+  <a class="contador" href="?atrasados=on"{% if so_atrasados %} aria-current="true"{% endif %}>
+    <strong>{{ contadores.atrasados }}</strong><span class="situacao s-atrasado">Atrasados</span>
+  </a>
+</nav>
+
+<form class="filtros" method="get" role="search" aria-label="Filtrar a fila">
+  {% include "includes/campo.html" with campo=filtro.situacao %}
+  {% include "includes/campo.html" with campo=filtro.categoria %}
+  {% include "includes/campo.html" with campo=filtro.prioridade %}
+  {% include "includes/campo.html" with campo=filtro.atendente %}
+  <div class="campo campo-marcar">
+    <label>{{ filtro.atrasados }} Só atrasados</label>
+  </div>
+  <div class="acoes-filtro">
+    <button class="botao" type="submit">Filtrar</button>
+    {% if filtro.tem_filtro %}<a href="{% url 'tickets:fila' %}">Limpar filtros</a>{% endif %}
+  </div>
+</form>
+
+{% if pagina.object_list %}
+  <p class="dica resultado" aria-live="polite">
+    {{ pagina.paginator.count }} ticket{{ pagina.paginator.count|pluralize }}
+    {% if pagina.paginator.num_pages > 1 %} · página {{ pagina.number }} de {{ pagina.paginator.num_pages }}{% endif %}
+  </p>
+  <div class="tabela-caixa">
+    <table class="tabela-responsiva">
+      <caption class="sr-only">Tickets da fila, atrasados primeiro e depois por prazo</caption>
+      <thead>
+        <tr>
+          <th scope="col">Nº</th><th scope="col">Título e cliente</th><th scope="col">Categoria</th>
+          <th scope="col">Prioridade</th><th scope="col">Situação</th><th scope="col">Atendente</th><th scope="col">Prazo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in pagina %}
+          <tr{% if t.esta_atrasado %} class="linha-atrasada"{% endif %}>
+            <td class="numero col-numero">{{ t.numero }}</td>
+            <td class="col-titulo"><span class="titulo-ticket">{{ t.titulo }}</span><br><span class="dica">{{ t.cliente.empresa }}</span></td>
+            <td class="col-detalhe">{{ t.categoria }}</td>
+            <td class="col-detalhe">{% include "includes/prioridade.html" %}</td>
+            <td class="col-situacao">{% include "includes/situacao.html" %}</td>
+            <td class="col-detalhe"><span class="so-celular">Atendente: </span>{% if t.atendente %}{{ t.atendente.nome }}{% else %}<span class="inativo">Ninguém</span>{% endif %}</td>
+            <td class="col-detalhe">
+              {% if t.esta_atrasado %}
+                <span class="situacao s-atrasado">Atrasado há {{ t.prazo|tempo_curto }}</span>
+              {% else %}
+                <span class="so-celular">Prazo: </span>{{ t.prazo|date:"d/m, H:i" }}
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pagina.has_other_pages %}
+    <nav class="paginacao" aria-label="Páginas da fila">
+      {% if pagina.has_previous %}<a class="botao botao-pequeno" href="?{% if parametros %}{{ parametros }}&amp;{% endif %}pagina={{ pagina.previous_page_number }}">Página anterior</a>{% endif %}
+      <span>Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</span>
+      {% if pagina.has_next %}<a class="botao botao-pequeno" href="?{% if parametros %}{{ parametros }}&amp;{% endif %}pagina={{ pagina.next_page_number }}">Próxima página</a>{% endif %}
+    </nav>
+  {% endif %}
+{% else %}
+  <div class="painel vazio">
+    {% if filtro.tem_filtro %}
+      <p>Nenhum ticket com estes filtros. <a href="{% url 'tickets:fila' %}">Ver a fila completa</a></p>
+    {% else %}
+      <h2>Fila vazia</h2>
+      <p>Nenhum ticket esperando a equipe agora.</p>
+    {% endif %}
+  </div>
+{% endif %}
 {% endblock %}

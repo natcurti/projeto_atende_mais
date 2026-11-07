@@ -500,7 +500,8 @@ tr.linha-atrasada td:first-child { box-shadow: inset 4px 0 0 var(--atrasado-tx);
    número e título em cima, e situação e detalhes embaixo. */
 .so-celular { display: none; }
 @media (max-width: 640px) {
-  .tabela-responsiva thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .tabela-responsiva, .tabela-responsiva tbody { display: block; width: 100%; }
+  .tabela-responsiva thead { display: none; } /* cada cartão já tem os rótulos */
   .tabela-responsiva tbody tr {
     display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
     padding: 14px 16px; border-bottom: 1px solid #E3E9EB;
@@ -516,3 +517,22 @@ tr.linha-atrasada td:first-child { box-shadow: inset 4px 0 0 var(--atrasado-tx);
 
 /* Filtro de um campo só (Meus tickets) */
 .filtros.compacto { max-width: 320px; }
+
+/* ---------- Fila de atendimento ---------- */
+.contador[aria-current] { border: 2px solid var(--petroleo); }
+.campo-marcar { justify-content: flex-end; }
+.campo-marcar label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 700; cursor: pointer; }
+.campo-marcar input { width: 20px; height: 20px; accent-color: var(--petroleo); }
+.acoes-filtro { display: flex; align-items: center; gap: 16px; }
+.resultado { margin-bottom: 8px; }
+.paginacao { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px; margin-top: 20px; }
+@media (min-width: 641px) {
+  .tabela-responsiva .col-detalhe { white-space: nowrap; }
+}
+@media (max-width: 640px) {
+  .contadores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .contador { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .contador .situacao { white-space: normal; }
+  .tabela-responsiva tbody tr.linha-atrasada { box-shadow: inset 4px 0 0 var(--atrasado-tx); }
+  .tabela-responsiva tbody tr.linha-atrasada td:first-child { box-shadow: none; }
+}

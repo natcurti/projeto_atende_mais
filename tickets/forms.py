@@ -1,5 +1,7 @@
 from django import forms
 
+from contas.models import Usuario
+
 from .models import Categoria, Ticket
 
 
@@ -33,3 +35,50 @@ class RespostaForm(forms.Form):
         widget=forms.Textarea(attrs={"rows": 4, "placeholder": "Escreva sua mensagem"}),
         error_messages={"required": "Escreva a mensagem antes de enviar."},
     )
+
+
+class FiltroFilaForm(forms.Form):
+    """Filtros da fila de atendimento (RF08). Todos são opcionais e podem ser combinados."""
+
+    situacao = forms.ChoiceField(
+        label="Situação", required=False,
+        choices=[("", "Todas em aberto"), *Ticket.Situacao.choices],
+    )
+    categoria = forms.ModelChoiceField(
+        label="Categoria", required=False, queryset=Categoria.objects.all(), empty_label="Todas",
+    )
+    prioridade = forms.ChoiceField(
+        label="Prioridade", required=False, choices=[("", "Todas"), *Ticket.Prioridade.choices],
+    )
+    atendente = forms.ChoiceField(label="Atendente", required=False)
+    atrasados = forms.BooleanField(label="Só atrasados", required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        equipe = Usuario.objects.filter(
+            perfil__in=[Usuario.Perfil.ATENDENTE, Usuario.Perfil.ADMINISTRADOR], is_active=True
+        ).order_by("nome")
+        self.fields["atendente"].choices = [
+            ("", "Todos"), ("comigo", "Comigo"), ("sem", "Sem atendente"),
+            *[(str(u.pk), u.nome) for u in equipe],
+        ]
+
+    @property
+    def filtros(self):
+        """
+        Filtros prontos para services.fila_de_atendimento.
+        Um valor inválido na URL (ex.: ?prioridade=xyz) é ignorado, e os outros filtros continuam valendo.
+        """
+        self.is_valid()
+        dados = self.cleaned_data
+        return {
+            "situacao": dados.get("situacao", ""),
+            "categoria": dados.get("categoria"),
+            "prioridade": dados.get("prioridade", ""),
+            "atendente": dados.get("atendente", ""),
+            "so_atrasados": dados.get("atrasados", False),
+        }
+
+    @property
+    def tem_filtro(self):
+        return any(self.filtros.values())
