@@ -284,3 +284,108 @@ class ServicoResponderTests(ClienteTestCase):
         equipe = [i.texto for i in services.linha_do_tempo(self.ticket, para_equipe=True)]
         self.assertEqual(cliente, ["Aparece uma falha.", "depois"])
         self.assertEqual(equipe, ["Aparece uma falha.", "nota", "depois"])
+
+
+# ==========================================================
+# F3: fila de atendimento (RF08, RN10)
+# ==========================================================
+
+class FilaTestCase(TestCase):
+    """Base: equipe, clientes, categorias e tickets em situações e prazos variados."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.carlos = Usuario.objects.create_user("carlos@empresa.com", SENHA, nome="Carlos Lima", perfil=Usuario.Perfil.ATENDENTE)
+        cls.ana = Usuario.objects.create_user("ana@empresa.com", SENHA, nome="Ana Reis", perfil=Usuario.Perfil.ATENDENTE)
+        cls.maria = Usuario.objects.create_user("maria@exemplo.com", SENHA, nome="Maria", empresa="Souza ME")
+        cls.erro = Categoria.objects.create(nome="Erro no sistema")
+        cls.duvida = Categoria.objects.create(nome="Dúvida")
+        agora = timezone.now()
+
+        def novo(titulo, **dados):
+            dados.setdefault("categoria", cls.erro)
+            return Ticket.objects.create(cliente=cls.maria, titulo=titulo, descricao="D", **dados)
+
+        # Prazos: média = 3 dias, urgente = 4 h, baixa = 5 dias (RN09)
+        cls.atrasado = novo("Atrasado urgente", prioridade="urgente", aberto_em=agora - timedelta(hours=6))
+        cls.aberto_duvida = novo("Dúvida aberta", categoria=cls.duvida, aberto_em=agora - timedelta(hours=1))
+        cls.do_carlos = novo("Com o Carlos", situacao="em_atendimento", atendente=cls.carlos, aberto_em=agora - timedelta(days=1))
+        cls.da_ana = novo("Com a Ana", prioridade="baixa", situacao="aguardando_cliente", atendente=cls.ana, aberto_em=agora)
+        cls.resolvido = novo("Já resolvido", situacao="resolvido", atendente=cls.ana, resolvido_em=agora)
+
+    def setUp(self):
+        self.client.force_login(self.carlos)
+
+    def titulos(self, **params):
+        resposta = self.client.get(reverse("tickets:fila"), params)
+        self.assertEqual(resposta.status_code, 200)
+        return [t.titulo for t in resposta.context["pagina"].object_list]
+
+
+class FilaTests(FilaTestCase):
+    def test_mostra_so_tickets_em_aberto_atrasados_primeiro_e_depois_por_prazo(self):  # RF08, RN10
+        self.assertEqual(self.titulos(), ["Atrasado urgente", "Com o Carlos", "Dúvida aberta", "Com a Ana"])
+
+    def test_filtro_por_situacao_inclusive_resolvidos(self):
+        self.assertEqual(self.titulos(situacao="em_atendimento"), ["Com o Carlos"])
+        self.assertEqual(self.titulos(situacao="resolvido"), ["Já resolvido"])
+
+    def test_filtro_por_categoria_e_prioridade(self):
+        self.assertEqual(self.titulos(categoria=self.duvida.pk), ["Dúvida aberta"])
+        self.assertEqual(self.titulos(prioridade="baixa"), ["Com a Ana"])
+
+    def test_filtro_por_atendente_comigo_sem_e_pessoa(self):
+        self.assertEqual(self.titulos(atendente="comigo"), ["Com o Carlos"])
+        self.assertEqual(self.titulos(atendente="sem"), ["Atrasado urgente", "Dúvida aberta"])
+        self.assertEqual(self.titulos(atendente=str(self.ana.pk)), ["Com a Ana"])
+
+    def test_filtro_so_atrasados(self):
+        self.assertEqual(self.titulos(atrasados="on"), ["Atrasado urgente"])
+
+    def test_filtros_combinados(self):
+        self.assertEqual(self.titulos(atendente="sem", categoria=self.erro.pk), ["Atrasado urgente"])
+        self.assertEqual(self.titulos(atendente="sem", prioridade="baixa"), [])
+
+    def test_valor_invalido_na_url_e_ignorado_sem_derrubar_os_outros_filtros(self):
+        self.assertEqual(self.titulos(prioridade="altissima", atendente="comigo"), ["Com o Carlos"])
+        self.assertEqual(len(self.titulos(categoria="abc")), 4)
+
+    def test_contadores(self):
+        resposta = self.client.get(reverse("tickets:fila"))
+        self.assertEqual(
+            resposta.context["contadores"],
+            {"abertos": 2, "em_atendimento": 1, "aguardando_cliente": 1, "atrasados": 1},
+        )
+
+    def test_linha_atrasada_em_destaque(self):
+        resposta = self.client.get(reverse("tickets:fila"))
+        self.assertContains(resposta, 'class="linha-atrasada"', count=1)
+        self.assertContains(resposta, "Atrasado há 2\xa0horas")  # \xa0: espaço que não quebra a linha
+
+    def test_paginacao_mantem_os_filtros(self):
+        for i in range(25):
+            Ticket.objects.create(cliente=self.maria, categoria=self.duvida, titulo=f"Lote {i}", descricao="D")
+        primeira = self.client.get(reverse("tickets:fila"), {"categoria": self.duvida.pk})
+        self.assertEqual(primeira.context["pagina"].paginator.count, 26)
+        self.assertEqual(len(primeira.context["pagina"].object_list), 20)
+        self.assertContains(primeira, f"categoria={self.duvida.pk}&amp;pagina=2")
+        segunda = self.client.get(reverse("tickets:fila"), {"categoria": self.duvida.pk, "pagina": 2})
+        self.assertEqual(len(segunda.context["pagina"].object_list), 6)
+
+    def test_numero_de_consultas_nao_cresce_com_a_fila(self):  # RNF07
+        def consultas():
+            from django.db import connection
+            from django.test.utils import CaptureQueriesContext
+
+            with CaptureQueriesContext(connection) as ctx:
+                self.client.get(reverse("tickets:fila"))
+            return len(ctx.captured_queries)
+
+        antes = consultas()
+        for i in range(15):
+            Ticket.objects.create(cliente=self.maria, categoria=self.erro, titulo=f"Mais {i}", descricao="D")
+        self.assertEqual(consultas(), antes)
+
+    def test_cliente_nao_acessa_a_fila(self):
+        self.client.force_login(self.maria)
+        self.assertEqual(self.client.get(reverse("tickets:fila")).status_code, 403)
