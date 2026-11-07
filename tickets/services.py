@@ -9,9 +9,15 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from django.db import transaction
+from django.db.models import BooleanField, Case, Count, Q, Value, When
 from django.utils import timezone
 
 from .models import Historico, Mensagem, Ticket
+
+# Situações em que o ticket ainda precisa da equipe.
+SITUACOES_EM_ABERTO = (
+    Ticket.Situacao.ABERTO, Ticket.Situacao.EM_ATENDIMENTO, Ticket.Situacao.AGUARDANDO_CLIENTE,
+)
 
 # RN09: tempo para resolver o ticket, conforme a prioridade.
 PRAZO_POR_PRIORIDADE = {
@@ -115,3 +121,55 @@ def linha_do_tempo(ticket, para_equipe):
 
     # Em caso de mesmo horário, o evento vem antes da mensagem (ex.: assumiu e depois respondeu).
     return sorted(itens, key=lambda item: (item.quando, item.tipo == "mensagem"))
+
+
+# ---------- Fila de atendimento (RF08) ----------
+
+def _atrasado_agora():
+    """RN10: condição de atraso para usar em consultas ao banco."""
+    return Q(situacao__in=SITUACOES_EM_ABERTO, prazo__lt=timezone.now())
+
+
+def fila_de_atendimento(usuario, situacao="", categoria=None, prioridade="", atendente="", so_atrasados=False):
+    """
+    Tickets da fila, com os filtros combinados.
+
+    - situacao: "" para todos os que ainda precisam da equipe, ou uma situação específica.
+    - atendente: "" (todos), "comigo", "sem" (sem atendente) ou o id de um usuário da equipe.
+    - Ordem (RN10): atrasados primeiro, depois o prazo mais próximo.
+      Resolvidos e fechados vêm do mais recente para o mais antigo.
+    """
+    tickets = Ticket.objects.select_related("cliente", "atendente", "categoria").annotate(
+        esta_atrasado=Case(When(_atrasado_agora(), then=Value(True)), default=Value(False), output_field=BooleanField())
+    )
+
+    if situacao:
+        tickets = tickets.filter(situacao=situacao)
+    else:
+        tickets = tickets.filter(situacao__in=SITUACOES_EM_ABERTO)
+    if categoria:
+        tickets = tickets.filter(categoria=categoria)
+    if prioridade:
+        tickets = tickets.filter(prioridade=prioridade)
+    if atendente == "comigo":
+        tickets = tickets.filter(atendente=usuario)
+    elif atendente == "sem":
+        tickets = tickets.filter(atendente__isnull=True)
+    elif atendente:
+        tickets = tickets.filter(atendente_id=atendente)
+    if so_atrasados:
+        tickets = tickets.filter(_atrasado_agora())
+
+    if situacao in (Ticket.Situacao.RESOLVIDO, Ticket.Situacao.FECHADO):
+        return tickets.order_by("-atualizado_em")
+    return tickets.order_by("-esta_atrasado", "prazo", "id")
+
+
+def contadores_da_fila():
+    """Quantidade de tickets em cada situação em aberto e de atrasados, numa consulta só."""
+    return Ticket.objects.aggregate(
+        abertos=Count("id", filter=Q(situacao=Ticket.Situacao.ABERTO)),
+        em_atendimento=Count("id", filter=Q(situacao=Ticket.Situacao.EM_ATENDIMENTO)),
+        aguardando_cliente=Count("id", filter=Q(situacao=Ticket.Situacao.AGUARDANDO_CLIENTE)),
+        atrasados=Count("id", filter=_atrasado_agora()),
+    )
