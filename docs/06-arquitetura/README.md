@@ -155,7 +155,7 @@ Elas ficam à parte das 7 tabelas do domínio.
 
 | Ambiente | Onde | Banco | Configuração |
 | --- | --- | --- | --- |
-| Desenvolvimento | Máquina da autora e do professor | `db.sqlite3` na pasta do projeto | Sem `.env`: `DEBUG` ligado |
+| Desenvolvimento | Máquina da equipe e do professor | `db.sqlite3` na pasta do projeto | Sem `.env`: `DEBUG` ligado |
 | Produção | PythonAnywhere, plano gratuito | `db.sqlite3` no servidor | `.env` com `DEBUG` desligado, `SECRET_KEY` própria e o endereço do site |
 
 O código é o mesmo nos dois ambientes; só muda o `.env`.

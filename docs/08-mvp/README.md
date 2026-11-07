@@ -152,4 +152,4 @@ Roteiro previsto para a apresentação, com os dados de exemplo:
 | Erro de permissão (cliente vendo ticket de outro, atendente mudando ticket alheio) | Falha de segurança na demonstração | Testes automatizados de acesso para cada perfil em F2, F3 e F4 |
 | Mudanças de situação inconsistentes | Ticket em situação impossível | Transições só pela camada de serviços, mais as restrições do banco que já existem |
 | Pouco tempo até o checkpoint | MVP incompleto | Ordem por dependência: F1 a F4 já formam um ciclo demonstrável, mesmo que F5 atrase |
-| Diferença entre a máquina da autora e a do professor | Sistema não roda na avaliação | O README foi testado com instalação do zero; repetir o teste antes de criar a tag |
+| Diferença entre a máquina da equipe e a do professor | Sistema não roda na avaliação | O README foi testado com instalação do zero; repetir o teste antes de criar a tag |
