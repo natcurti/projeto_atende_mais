@@ -22,3 +22,17 @@ def estrelas(nota):
     except (TypeError, ValueError):
         return ""
     return "★" * nota + "☆" * (5 - nota)
+
+
+@register.filter
+def duracao(horas):
+    """Duração em horas, legível: 0,75 vira "45 min"; 18,5 vira "18,5 h"; 55 vira "2,3 dias"."""
+    from django.utils.formats import number_format
+
+    if horas is None:
+        return "—"
+    if horas < 1:
+        return f"{round(horas * 60)} min"
+    if horas < 48:
+        return f"{number_format(horas, 1)} h"
+    return f"{number_format(horas / 24, 1)} dias"

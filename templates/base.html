@@ -23,6 +23,7 @@
         {% else %}
           <a href="{% url 'tickets:fila' %}"{% if atual == 'fila' or atual == 'ticket_equipe' %} aria-current="page"{% endif %}>Fila</a>
           {% if user.perfil == "administrador" %}
+            <a href="{% url 'painel:painel' %}"{% if atual == 'painel' %} aria-current="page"{% endif %}>Painel</a>
             <a href="{% url 'contas:administracao' %}"{% if atual in "administracao nova_pessoa editar_pessoa editar_categoria" %} aria-current="page"{% endif %}>Administração</a>
           {% endif %}
         {% endif %}
