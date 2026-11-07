@@ -4,7 +4,7 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 
-from .managers import UsuarioManager
+from .managers import UsuarioManager, normalizar_email
 
 
 class Usuario(AbstractBaseUser, PermissionsMixin):
@@ -54,6 +54,14 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.nome
+
+    def clean(self):
+        super().clean()
+        self.email = normalizar_email(self.email)
+
+    def save(self, *args, **kwargs):
+        self.email = normalizar_email(self.email)
+        super().save(*args, **kwargs)
 
     @property
     def is_staff(self):

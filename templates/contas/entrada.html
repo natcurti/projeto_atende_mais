@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block titulo %}Entrar{% endblock %}
+{% block topo %}{% endblock %}
+{% block classe_pagina %}entrada{% endblock %}
+
+{% block avisos %}{% endblock %}
+
+{% block conteudo %}
+<div>
+  <div class="marca-grande">atende<span class="mais">+</span></div>
+  <p class="lema">Seu pedido de suporte, do primeiro contato à solução.</p>
+</div>
+
+{% for mensagem in messages %}
+  <p class="aviso aviso-info" role="status" style="margin:0">{{ mensagem }}</p>
+{% endfor %}
+
+<div class="entrada-cartoes">
+  <section class="painel" aria-labelledby="titulo-entrar">
+    <h2 id="titulo-entrar">Entrar</h2>
+    <form class="formulario" method="post" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="acao" value="entrar">
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+      {% for erro in form_entrar.non_field_errors %}<p class="aviso aviso-erro" role="alert">{{ erro }}</p>{% endfor %}
+      {% include "includes/campo.html" with campo=form_entrar.username %}
+      {% include "includes/campo.html" with campo=form_entrar.password %}
+      <button class="botao botao-principal botao-largo" type="submit">Entrar</button>
+    </form>
+  </section>
+
+  <section class="painel" aria-labelledby="titulo-cadastro">
+    <h2 id="titulo-cadastro">Criar conta de cliente</h2>
+    <form class="formulario" method="post" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="acao" value="cadastrar">
+      {% include "includes/campo.html" with campo=form_cadastro.nome %}
+      {% include "includes/campo.html" with campo=form_cadastro.email %}
+      {% include "includes/campo.html" with campo=form_cadastro.empresa %}
+      <div class="linha-campos">
+        {% include "includes/campo.html" with campo=form_cadastro.senha %}
+        {% include "includes/campo.html" with campo=form_cadastro.senha_confirmacao %}
+      </div>
+      <button class="botao botao-largo" type="submit">Criar conta</button>
+      <p class="dica">Atendentes e administradores são cadastrados pelo administrador do sistema.</p>
+    </form>
+  </section>
+</div>
+
+{% if modo_demonstracao %}
+  <aside class="demonstracao" aria-label="Contas de demonstração">
+    <p><strong>Ambiente de demonstração.</strong> Com os dados de exemplo carregados, entre com a senha <code>atende123</code> e um destes e-mails:</p>
+    <ul>
+      <li><code>maria@souzacomercio.com.br</code> (cliente)</li>
+      <li><code>carlos@empresa.com</code> (atendente)</li>
+      <li><code>juliana@empresa.com</code> (administradora)</li>
+    </ul>
+  </aside>
+{% endif %}
+{% endblock %}
