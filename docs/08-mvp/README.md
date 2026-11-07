@@ -7,6 +7,8 @@ mantém a equipe e as categorias. É a menor versão que já resolve o problema 
 
 O MVP vira a versão `v0.1.0` na `main` e é apresentado no Checkpoint 2.
 
+> **Situação:** todos os 27 critérios de aceite abaixo foram atendidos. O resultado está em [docs/09-mvp-funcional](../09-mvp-funcional/).
+
 ## 1. Requisitos priorizados
 
 A prioridade usa o método **MoSCoW**, a partir da prioridade definida na Entrega 1:
@@ -33,53 +35,53 @@ a funcionalidade só é considerada pronta quando todos eles passam.
 
 Tela: Entrada (protótipo, `index.html`).
 
-- [ ] O cliente cria a conta com nome, e-mail, empresa e senha; o e-mail não pode estar cadastrado (RF01).
-- [ ] A senha precisa ter pelo menos 8 caracteres e é guardada só como hash (RNF03).
-- [ ] Qualquer perfil entra com e-mail e senha; usuário desativado não entra (RN12).
-- [ ] Depois de entrar, o cliente vai para *Meus tickets* e a equipe vai para a *Fila* (navegação da Entrega 3).
-- [ ] Qualquer tela do sistema, se acessada sem login, leva para a tela de entrada.
-- [ ] O botão *Sair* encerra a sessão.
+- [x] O cliente cria a conta com nome, e-mail, empresa e senha; o e-mail não pode estar cadastrado (RF01).
+- [x] A senha precisa ter pelo menos 8 caracteres e é guardada só como hash (RNF03).
+- [x] Qualquer perfil entra com e-mail e senha; usuário desativado não entra (RN12).
+- [x] Depois de entrar, o cliente vai para *Meus tickets* e a equipe vai para a *Fila* (navegação da Entrega 3).
+- [x] Qualquer tela do sistema, se acessada sem login, leva para a tela de entrada.
+- [x] O botão *Sair* encerra a sessão.
 
 ### F2 — Abrir e acompanhar tickets, pelo cliente (RF06, RF07, RF09, RF12)
 
 Telas: Meus tickets, Abrir ticket e Ticket em atendimento (protótipo).
 
-- [ ] O cliente abre um ticket com título, categoria (só as ativas) e descrição (RF06, RN12).
-- [ ] O ticket nasce Aberto, sem atendente, com número a partir de 1000 e prazo de prioridade Média (RN01, RN03, RN09).
-- [ ] Depois de enviar, o cliente volta para *Meus tickets* com o aviso de confirmação.
-- [ ] *Meus tickets* lista só os tickets do próprio cliente, com número, título, categoria, situação e última atualização (RF07, RN08).
-- [ ] O detalhe mostra a conversa e os eventos do histórico, **sem as notas internas** (RF09, RN08).
-- [ ] O cliente responde no próprio ticket (RF12). Se o ticket estava *Aguardando cliente*, volta para *Em atendimento* (RN06).
-- [ ] Um cliente que tenta abrir o endereço do ticket de outro cliente recebe "página não encontrada" (RNF04).
+- [x] O cliente abre um ticket com título, categoria (só as ativas) e descrição (RF06, RN12).
+- [x] O ticket nasce Aberto, sem atendente, com número a partir de 1000 e prazo de prioridade Média (RN01, RN03, RN09).
+- [x] Depois de enviar, o cliente volta para *Meus tickets* com o aviso de confirmação.
+- [x] *Meus tickets* lista só os tickets do próprio cliente, com número, título, categoria, situação e última atualização (RF07, RN08).
+- [x] O detalhe mostra a conversa e os eventos do histórico, **sem as notas internas** (RF09, RN08).
+- [x] O cliente responde no próprio ticket (RF12). Se o ticket estava *Aguardando cliente*, volta para *Em atendimento* (RN06).
+- [x] Um cliente que tenta abrir o endereço do ticket de outro cliente recebe "página não encontrada" (RNF04).
 
 ### F3 — Fila de atendimento (RF08)
 
 Tela: Fila (protótipo, `equipe-fila.html`).
 
-- [ ] Só atendentes e administradores acessam a fila (RNF04).
-- [ ] A fila mostra os tickets não resolvidos: atrasados primeiro, depois por prazo (RN10).
-- [ ] Os contadores do topo mostram quantos tickets há em cada situação.
-- [ ] Filtros por situação, categoria, prioridade e atendente (incluindo "Comigo" e "Sem atendente") funcionam juntos.
+- [x] Só atendentes e administradores acessam a fila (RNF04).
+- [x] A fila mostra os tickets não resolvidos: atrasados primeiro, depois por prazo (RN10).
+- [x] Os contadores do topo mostram quantos tickets há em cada situação.
+- [x] Filtros por situação, categoria, prioridade e atendente (incluindo "Comigo" e "Sem atendente") funcionam juntos.
 
 ### F4 — Atender o ticket (RF09, RF10, RF11, RF12)
 
 Tela: Ticket na visão da equipe (protótipo, `equipe-ticket.html`).
 
-- [ ] O atendente vê a conversa completa e responde ao cliente (RF09, RF12).
-- [ ] *Assumir* coloca o ticket com o atendente logado e muda para *Em atendimento* (RF10, RN04).
-- [ ] O administrador pode atribuir o ticket a outro atendente (RF10).
-- [ ] O atendente responsável ou um administrador muda a situação para *Aguardando cliente* ou *Resolvido*; os outros atendentes não podem (RF11, RN05).
-- [ ] *Resolvido* grava a data de resolução.
-- [ ] Toda mudança de atendente ou de situação aparece no histórico, com autor e data (RN13).
+- [x] O atendente vê a conversa completa e responde ao cliente (RF09, RF12).
+- [x] *Assumir* coloca o ticket com o atendente logado e muda para *Em atendimento* (RF10, RN04).
+- [x] O administrador pode atribuir o ticket a outro atendente (RF10).
+- [x] O atendente responsável ou um administrador muda a situação para *Aguardando cliente* ou *Resolvido*; os outros atendentes não podem (RF11, RN05).
+- [x] *Resolvido* grava a data de resolução.
+- [x] Toda mudança de atendente ou de situação aparece no histórico, com autor e data (RN13).
 
 ### F5 — Administração (RF04, RF05)
 
 Tela: Administração (protótipo, `admin.html`).
 
-- [ ] Só administradores acessam (RNF04).
-- [ ] O administrador cadastra, edita, desativa e reativa atendentes e administradores (RF04, RN12).
-- [ ] O administrador cadastra, renomeia, desativa e reativa categorias (RF05, RN12).
-- [ ] Não há exclusão: itens desativados continuam aparecendo nos tickets antigos (RN12).
+- [x] Só administradores acessam (RNF04).
+- [x] O administrador cadastra, edita, desativa e reativa atendentes e administradores (RF04, RN12).
+- [x] O administrador cadastra, renomeia, desativa e reativa categorias (RF05, RN12).
+- [x] Não há exclusão: itens desativados continuam aparecendo nos tickets antigos (RN12).
 
 ### Fora do MVP
 
