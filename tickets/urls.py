@@ -14,4 +14,8 @@ urlpatterns = [
     path("fila/<int:numero>/", views.ticket_equipe, name="ticket_equipe"),
     path("fila/<int:numero>/assumir/", views.assumir_ticket, name="assumir"),
     path("fila/<int:numero>/gerenciar/", views.gerenciar_ticket, name="gerenciar"),
+    # Administração das categorias (RF05)
+    path("administracao/categorias/nova/", views.nova_categoria, name="nova_categoria"),
+    path("administracao/categorias/<int:pk>/", views.editar_categoria, name="editar_categoria"),
+    path("administracao/categorias/<int:pk>/ativa/", views.alterar_categoria, name="alterar_categoria"),
 ]

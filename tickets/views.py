@@ -3,11 +3,11 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from contas.permissoes import somente_cliente, somente_equipe
+from contas.permissoes import somente_administrador, somente_cliente, somente_equipe
 
 from . import services
-from .forms import FiltroFilaForm, GerenciarTicketForm, NovoTicketForm, RespostaForm
-from .models import Ticket
+from .forms import CategoriaForm, FiltroFilaForm, GerenciarTicketForm, NovoTicketForm, RespostaForm
+from .models import Categoria, Ticket
 
 
 # ---------- Cliente ----------
@@ -190,3 +190,44 @@ def gerenciar_ticket(request, numero):
         else:
             messages.info(request, "Nada foi alterado.")
     return redirect("tickets:ticket_equipe", numero=ticket.pk)
+
+
+# ---------- Administração das categorias (RF05) ----------
+
+@somente_administrador
+@require_POST
+def nova_categoria(request):
+    """RF05: cadastra uma categoria pelo formulário da página Administração."""
+    form = CategoriaForm(request.POST)
+    if form.is_valid():
+        categoria = form.save()
+        messages.success(request, f"Categoria {categoria.nome} criada. Ela já aparece para novos tickets.")
+    else:
+        messages.error(request, " ".join(form.errors["nome"]))
+    return redirect("contas:administracao")
+
+
+@somente_administrador
+def editar_categoria(request, pk):
+    """RF05: renomeia uma categoria. Os tickets antigos passam a mostrar o nome novo."""
+    categoria = get_object_or_404(Categoria, pk=pk)
+    form = CategoriaForm(request.POST or None, instance=categoria)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, f"Categoria renomeada para {categoria.nome}.")
+        return redirect("contas:administracao")
+    return render(request, "tickets/categoria_form.html", {"form": form, "categoria": categoria})
+
+
+@somente_administrador
+@require_POST
+def alterar_categoria(request, pk):
+    """RN12: desativa ou reativa uma categoria. Desativada, ela some só da abertura de novos tickets."""
+    categoria = get_object_or_404(Categoria, pk=pk)
+    categoria.ativa = not categoria.ativa
+    categoria.save(update_fields=["ativa"])
+    if categoria.ativa:
+        messages.success(request, f"Categoria {categoria.nome} reativada.")
+    else:
+        messages.success(request, f"Categoria {categoria.nome} desativada. Os tickets antigos continuam com ela.")
+    return redirect("contas:administracao")

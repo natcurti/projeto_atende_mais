@@ -1,12 +1,18 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .forms import CadastroClienteForm, EntrarForm
+from tickets.forms import CategoriaForm
+from tickets.models import Categoria
+
+from . import services
+from .forms import CadastroClienteForm, EntrarForm, PessoaEquipeForm
+from .models import Usuario
+from .permissoes import somente_administrador
 
 
 def pagina_inicial_do_perfil(usuario):
@@ -69,3 +75,68 @@ def sair(request):
     logout(request)
     messages.info(request, "Você saiu do atende+.")
     return redirect("contas:entrada")
+
+
+# ---------- Administração (RF04, RF05) ----------
+
+@somente_administrador
+def administracao(request):
+    """Página Administração: equipe de suporte e categorias de ticket."""
+    contexto = {
+        "equipe": services.equipe(),
+        "categorias": Categoria.objects.order_by("-ativa", "nome"),
+        "form_categoria": CategoriaForm(),
+    }
+    return render(request, "contas/administracao.html", contexto)
+
+
+def _pessoa_da_equipe(pk):
+    """Clientes não aparecem aqui: o endereço de um cliente dá "não encontrado"."""
+    return get_object_or_404(Usuario, pk=pk, perfil__in=services.PERFIS_DA_EQUIPE)
+
+
+@somente_administrador
+def nova_pessoa(request):
+    """RF04: cadastra um atendente ou administrador."""
+    form = PessoaEquipeForm(request.POST or None, editor=request.user)
+    if request.method == "POST" and form.is_valid():
+        pessoa = form.save()
+        messages.success(request, f"{pessoa.nome} agora faz parte da equipe e já pode entrar com o e-mail e a senha inicial.")
+        return redirect("contas:administracao")
+    return render(request, "contas/pessoa_form.html", {"form": form})
+
+
+@somente_administrador
+def editar_pessoa(request, pk):
+    """RF04: edita nome, e-mail, perfil e, se quiser, a senha."""
+    pessoa = _pessoa_da_equipe(pk)
+    form = PessoaEquipeForm(request.POST or None, instance=pessoa, editor=request.user)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, f"Dados de {pessoa.nome} salvos.")
+        return redirect("contas:administracao")
+    return render(request, "contas/pessoa_form.html", {"form": form, "pessoa": pessoa})
+
+
+@somente_administrador
+@require_POST
+def alterar_acesso(request, pk):
+    """RN12: desativa ou reativa o acesso de uma pessoa da equipe. Ninguém é excluído."""
+    pessoa = _pessoa_da_equipe(pk)
+    ativar = not pessoa.is_active
+    try:
+        em_aberto = services.alterar_acesso(request.user, pessoa, ativar)
+    except services.AdministracaoError as erro:
+        messages.error(request, str(erro))
+    else:
+        if ativar:
+            messages.success(request, f"O acesso de {pessoa.nome} foi reativado.")
+        else:
+            messages.success(request, f"O acesso de {pessoa.nome} foi desativado. O nome continua nos tickets antigos.")
+            if em_aberto:
+                messages.warning(
+                    request,
+                    f"{pessoa.nome} ainda tem {em_aberto} ticket{'s' if em_aberto > 1 else ''} em aberto. "
+                    "Abra cada um na fila e passe para outra pessoa da equipe.",
+                )
+    return redirect("contas:administracao")
