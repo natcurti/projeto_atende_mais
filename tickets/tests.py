@@ -703,3 +703,61 @@ class NotasInternasTests(AtendimentoTestCase):
         self.client.force_login(self.carlos)
         self.client.post(self.url(), {"texto": "Olá, Maria!"})
         self.assertFalse(self.aberto.mensagens.get().interna)
+
+
+# ==========================================================
+# Evolução (v0.2.0) — E2: mudar a prioridade (RF17, RN09)
+# ==========================================================
+
+class PrioridadeTests(AtendimentoTestCase):
+    def gerenciar(self, **dados):
+        return self.client.post(reverse("tickets:gerenciar", args=[self.aberto.pk]), dados, follow=True)
+
+    def test_responsavel_muda_a_prioridade_e_o_prazo_e_recalculado(self):  # RF17, RN09
+        self.com_carlos()
+        services.mudar_prioridade(self.aberto, self.carlos, "urgente")
+        self.aberto.refresh_from_db()
+        self.assertEqual(self.aberto.prioridade, "urgente")
+        self.assertEqual(self.aberto.prazo, self.aberto.aberto_em + timedelta(hours=4))
+        evento = self.aberto.historico.get(campo="prioridade")
+        self.assertEqual(evento.descricao, "Prioridade alterada de Média para Urgente")
+
+    def test_mudar_para_urgente_um_ticket_antigo_o_deixa_atrasado(self):  # RN10
+        Ticket.objects.filter(pk=self.aberto.pk).update(aberto_em=timezone.now() - timedelta(hours=6))
+        self.aberto.refresh_from_db()
+        services.mudar_prioridade(self.aberto, self.juliana, "urgente")
+        self.assertTrue(self.aberto.atrasado)
+
+    def test_outro_atendente_nao_muda(self):  # RN05
+        self.com_carlos()
+        with self.assertRaises(services.RegraDeNegocioError):
+            services.mudar_prioridade(self.aberto, self.ana, "alta")
+
+    def test_administrador_tria_ticket_ainda_aberto(self):
+        services.mudar_prioridade(self.aberto, self.juliana, "alta")
+        self.aberto.refresh_from_db()
+        self.assertEqual((self.aberto.prioridade, self.aberto.situacao), ("alta", "aberto"))
+
+    def test_atendente_nao_tria_ticket_aberto_sem_assumir(self):
+        with self.assertRaisesMessage(services.RegraDeNegocioError, "Assuma o ticket"):
+            services.mudar_prioridade(self.aberto, self.carlos, "alta")
+
+    def test_ticket_resolvido_nao_muda_de_prioridade(self):
+        self.com_carlos()
+        services.mudar_situacao(self.aberto, self.carlos, "resolvido")
+        with self.assertRaises(services.RegraDeNegocioError):
+            services.mudar_prioridade(self.aberto, self.carlos, "baixa")
+
+    def test_pelo_painel_mostra_o_novo_prazo(self):
+        self.com_carlos()
+        self.client.force_login(self.carlos)
+        resposta = self.gerenciar(situacao="em_atendimento", prioridade="baixa")
+        self.assertContains(resposta, "prioridade alterada para Baixa, com novo prazo em")
+        self.assertContains(resposta, "Prioridade alterada de Média para Baixa")
+
+    def test_pelo_painel_muda_prioridade_e_resolve_juntos(self):
+        self.com_carlos()
+        self.client.force_login(self.carlos)
+        self.gerenciar(situacao="resolvido", prioridade="alta")
+        self.aberto.refresh_from_db()
+        self.assertEqual((self.aberto.prioridade, self.aberto.situacao), ("alta", "resolvido"))
