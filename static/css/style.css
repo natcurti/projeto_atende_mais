@@ -547,3 +547,22 @@ tr.linha-atrasada td:first-child { box-shadow: inset 4px 0 0 var(--atrasado-tx);
   .tabela-responsiva .col-acao .botao { width: 100%; }
   .so-computador { display: none; } /* no celular, o título do ticket já é o link */
 }
+
+/* ---------- Administração (F5) ---------- */
+.aviso-alerta { background: var(--sinal-claro); color: #6B5100; border: 1px solid #E3C35A; }
+.cabecalho-secao { margin-bottom: 12px; }
+.formulario-estreito { max-width: 720px; }
+.col-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+.col-acoes form { margin: 0; }
+.texto-perigo { color: var(--atrasado-tx); }
+.texto-perigo:hover { color: #7D1B15; }
+tr.inativo td, li.inativo > span:first-child { color: var(--texto-suave); }
+.lista-categorias { list-style: none; margin: 0; padding: 0; }
+.lista-categorias li {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  padding: 10px 0; border-bottom: 1px solid #E3E9EB;
+}
+.lista-categorias li:last-child { border-bottom: 0; }
+@media (max-width: 640px) {
+  .tabela-responsiva .col-acoes { order: 5; flex-basis: 100%; }
+}

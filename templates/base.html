@@ -22,6 +22,9 @@
           <a href="{% url 'tickets:novo_ticket' %}"{% if atual == 'novo_ticket' %} aria-current="page"{% endif %}>Abrir ticket</a>
         {% else %}
           <a href="{% url 'tickets:fila' %}"{% if atual == 'fila' or atual == 'ticket_equipe' %} aria-current="page"{% endif %}>Fila</a>
+          {% if user.perfil == "administrador" %}
+            <a href="{% url 'contas:administracao' %}"{% if atual in "administracao nova_pessoa editar_pessoa editar_categoria" %} aria-current="page"{% endif %}>Administração</a>
+          {% endif %}
         {% endif %}
       </nav>
       {% endwith %}
@@ -40,7 +43,7 @@
 <main class="{% block classe_pagina %}pagina{% endblock %}">
   {% block avisos %}
     {% for mensagem in messages %}
-      <p class="aviso{% if mensagem.tags == 'info' %} aviso-info{% elif mensagem.tags == 'error' %} aviso-erro{% endif %}" role="status">{{ mensagem }}</p>
+      <p class="aviso{% if mensagem.tags == 'info' %} aviso-info{% elif mensagem.tags == 'error' %} aviso-erro{% elif mensagem.tags == 'warning' %} aviso-alerta{% endif %}" role="status">{{ mensagem }}</p>
     {% endfor %}
   {% endblock %}
   {% block conteudo %}{% endblock %}
