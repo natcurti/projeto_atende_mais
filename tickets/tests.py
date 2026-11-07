@@ -97,10 +97,12 @@ class DadosExemploTests(TestCase):
     def test_comando_carrega_os_dados_do_prototipo(self):
         call_command("carregar_dados_exemplo", stdout=StringIO())
         self.assertEqual(Usuario.objects.count(), 8)
-        self.assertEqual(Ticket.objects.count(), 7)
+        self.assertEqual(Ticket.objects.count(), 52)  # 7 do protótipo + 45 de histórico para o painel
         self.assertEqual(Ticket.objects.order_by("id").first().pk, 1000)
-        urgente = Ticket.objects.get(prioridade="urgente")
-        self.assertTrue(urgente.atrasado)
+        self.assertTrue(Ticket.objects.get(pk=1006).atrasado)  # o urgente da demonstração
+        historico = Ticket.objects.filter(pk__gt=1006)
+        self.assertFalse(historico.exclude(situacao__in=["resolvido", "fechado"]).exists())
+        self.assertFalse(historico.filter(cliente__email="maria@souzacomercio.com.br").exists())
 
 
 class PaginaInicialTests(TestCase):
