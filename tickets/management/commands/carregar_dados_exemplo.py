@@ -175,9 +175,8 @@ class Command(BaseCommand):
             alterado_em=pergunta,
         )
 
-        # --- Avaliações ---
+        # --- Avaliações (o #1001 fica sem, para a Maria avaliar na demonstração) ---
         Avaliacao.objects.create(ticket=t1000, nota=4, comentario="Resolveram rápido.", avaliado_em=t1000.resolvido_em + timedelta(hours=2))
-        Avaliacao.objects.create(ticket=t1001, nota=5, avaliado_em=t1001.resolvido_em + timedelta(hours=1))
 
         # "Última atualização" de cada ticket = o último acontecimento dele (mensagem ou mudança).
         for t in Ticket.objects.all():

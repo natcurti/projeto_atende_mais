@@ -12,7 +12,7 @@ from django.db import transaction
 from django.db.models import BooleanField, Case, Count, Q, Value, When
 from django.utils import timezone
 
-from .models import Historico, Mensagem, Ticket
+from .models import Avaliacao, Historico, Mensagem, Ticket
 
 # Situações em que o ticket ainda precisa da equipe.
 SITUACOES_EM_ABERTO = (
@@ -305,3 +305,27 @@ def mudar_prioridade(ticket, usuario, nova):
     ticket.prazo = calcular_prazo(nova, ticket.aberto_em)
     ticket.save()
     return ticket
+
+
+# ---------- Avaliação do atendimento (RF16) ----------
+
+def pode_avaliar(usuario, ticket):
+    """RN11: só a cliente dona do ticket, depois de resolvido, e uma única vez."""
+    return (
+        usuario.pk == ticket.cliente_id
+        and ticket.situacao in (Ticket.Situacao.RESOLVIDO, Ticket.Situacao.FECHADO)
+        and not Avaliacao.objects.filter(ticket=ticket).exists()
+    )
+
+
+def avaliar(ticket, cliente, nota, comentario=""):
+    """RF16, RN11: a cliente dá uma nota de 1 a 5 e, se quiser, um comentário."""
+    if cliente.pk != ticket.cliente_id:
+        raise RegraDeNegocioError("Só quem abriu o ticket pode avaliar o atendimento.")
+    if ticket.situacao not in (Ticket.Situacao.RESOLVIDO, Ticket.Situacao.FECHADO):
+        raise RegraDeNegocioError("O atendimento só pode ser avaliado depois que o ticket for resolvido.")
+    if Avaliacao.objects.filter(ticket=ticket).exists():
+        raise RegraDeNegocioError("Este atendimento já foi avaliado. A avaliação só pode ser feita uma vez.")
+    if nota not in range(1, 6):
+        raise RegraDeNegocioError("Escolha uma nota de 1 a 5.")
+    return Avaliacao.objects.create(ticket=ticket, nota=nota, comentario=(comentario or "").strip() or None)

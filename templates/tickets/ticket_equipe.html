@@ -86,6 +86,10 @@
           <dt>Prazo</dt><dd>{{ ticket.prazo|date:"d/m/Y, H:i" }}</dd>
         {% endif %}
         <dt>E-mail</dt><dd class="quebra">{{ ticket.cliente.email }}</dd>
+        {% if ticket.avaliacao %}
+          <dt>Avaliação</dt>
+          <dd><span class="estrelas-nota" aria-label="Nota {{ ticket.avaliacao.nota }} de 5"><span aria-hidden="true">{{ ticket.avaliacao.nota|estrelas }}</span></span>{% if ticket.avaliacao.comentario %}<br><span class="dica">"{{ ticket.avaliacao.comentario }}"</span>{% endif %}</dd>
+        {% endif %}
       </dl>
     </div>
   </aside>

@@ -581,3 +581,21 @@ tr.inativo td, li.inativo > span:first-child { color: var(--texto-suave); }
 .dica-nota { display: none; }
 .responder:has(input[value="interna"]:checked) .dica-nota { display: block; font-weight: 700; color: #6B5100; }
 .responder:has(input[value="interna"]:checked) textarea { background: var(--sinal-claro); border-color: #C99A00; }
+
+/* ---------- Avaliação com estrelas (RF16) ---------- */
+.estrelas-avaliacao { border: 0; margin: 0; padding: 0; }
+.estrelas-avaliacao legend { font-size: 0.875rem; color: var(--texto-suave); margin-bottom: 8px; padding: 0; }
+/* Em ordem invertida no HTML (5 a 1) e mostradas de 1 a 5: assim a estrela escolhida
+   e as anteriores acendem juntas com o seletor "~". */
+.estrelas-grupo { display: inline-flex; flex-direction: row-reverse; gap: 4px; }
+.estrelas-grupo input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.estrelas-grupo label {
+  display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+  font-size: 1.6rem; line-height: 1; color: #8B9AA0; cursor: pointer;
+  border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie);
+}
+.estrelas-grupo input:checked ~ label,
+.estrelas-grupo label:hover, .estrelas-grupo label:hover ~ label { color: #B57F00; border-color: #E3C35A; background: var(--sinal-claro); }
+.estrelas-grupo input:focus-visible + label { outline: 3px solid var(--petroleo); outline-offset: 2px; }
+.estrelas-nota { color: #8C6400; font-size: 1.15rem; }
+.estrelas-nota span[aria-hidden] { color: #B57F00; letter-spacing: 2px; margin-right: 6px; }
