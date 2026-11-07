@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block titulo %}{% if pessoa %}Editar {{ pessoa.nome }}{% else %}Adicionar pessoa{% endif %}{% endblock %}
+
+{% block conteudo %}
+<a class="voltar" href="{% url 'contas:administracao' %}">Voltar para Administração</a>
+<div class="cabecalho-pagina">
+  <div>
+    <h1>{% if pessoa %}Editar {{ pessoa.nome }}{% else %}Adicionar pessoa à equipe{% endif %}</h1>
+    <p class="subtitulo">Campos com * são obrigatórios.</p>
+  </div>
+</div>
+
+<section class="painel formulario-estreito">
+  <form class="formulario" method="post" novalidate>
+    {% csrf_token %}
+    <div class="linha-campos">
+      {% include "includes/campo.html" with campo=form.nome %}
+      {% include "includes/campo.html" with campo=form.email %}
+    </div>
+    {% include "includes/campo.html" with campo=form.perfil %}
+    <p class="dica">Atendentes trabalham na fila. Administradores também acessam esta área de Administração.</p>
+    <div class="linha-campos">
+      {% include "includes/campo.html" with campo=form.senha %}
+      {% include "includes/campo.html" with campo=form.senha_confirmacao %}
+    </div>
+    <div class="acoes-formulario">
+      <a class="botao" href="{% url 'contas:administracao' %}">Cancelar</a>
+      <button class="botao botao-principal" type="submit">{% if pessoa %}Salvar alterações{% else %}Adicionar pessoa{% endif %}</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

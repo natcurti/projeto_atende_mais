@@ -11,8 +11,6 @@ from django.db.models.functions import Length, Trim
 from django.db.models.lookups import GreaterThan
 from django.utils import timezone
 
-from .services import calcular_prazo
-
 TAMANHO_MAXIMO_ANEXO = 5 * 1024 * 1024  # 5 MB (RN14)
 
 
@@ -119,8 +117,16 @@ class Ticket(models.Model):
         )
         return nao_resolvido and self.prazo is not None and self.prazo < timezone.now()
 
+    @property
+    def aceita_resposta(self):
+        """Resolvidos e fechados não recebem mensagens (a reabertura, RF15, vem depois do MVP)."""
+        return self.situacao not in (self.Situacao.RESOLVIDO, self.Situacao.FECHADO)
+
     def save(self, *args, **kwargs):
         if self.prazo is None:
+            # Importado aqui porque services.py também importa este arquivo.
+            from .services import calcular_prazo
+
             self.prazo = calcular_prazo(self.prioridade, self.aberto_em)
         super().save(*args, **kwargs)
 
@@ -226,7 +232,24 @@ class Historico(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.ticket.numero}: {self.get_campo_display()} de {self.valor_anterior} para {self.valor_novo}"
+        return f"{self.ticket.numero}: {self.descricao}"
+
+    @property
+    def descricao(self):
+        """Frase do evento como aparece na conversa do ticket."""
+        if self.campo == self.Campo.ATENDENTE:
+            if self.valor_anterior is None and self.autor.nome == self.valor_novo:
+                return f"{self.valor_novo} assumiu o atendimento"
+            return f"{self.autor.nome} passou o atendimento para {self.valor_novo}"
+        if self.campo == self.Campo.SITUACAO:
+            novo = Ticket.Situacao(self.valor_novo).label
+            if self.valor_novo == Ticket.Situacao.RESOLVIDO:
+                return f"{self.autor.nome} marcou o ticket como resolvido"
+            if self.valor_anterior is None:
+                return f"Situação: {novo}"
+            return f"Situação alterada de {Ticket.Situacao(self.valor_anterior).label} para {novo}"
+        anterior = Ticket.Prioridade(self.valor_anterior).label if self.valor_anterior else "sem prioridade"
+        return f"Prioridade alterada de {anterior} para {Ticket.Prioridade(self.valor_novo).label}"
 
 
 class Avaliacao(models.Model):

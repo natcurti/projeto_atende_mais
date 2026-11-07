@@ -5,21 +5,29 @@ acompanha cada um até a solução, e a gestão vê indicadores do atendimento.
 
 Projeto da disciplina do curso de **Análise e Desenvolvimento de Sistemas — FATEC**.
 
+**Versão atual:** `v0.1.0` (MVP), com cadastro e login, abertura e acompanhamento de tickets pelo cliente,
+fila de atendimento, atendimento pela equipe e administração. Veja o [Checkpoint 2](docs/09-mvp-funcional/).
+
 **Protótipo navegável:** https://natcurti.github.io/projeto_atende_mais/03-ux-ui/prototipo/
 
-## Entregas
+## Etapas do projeto
 
-| Nº | Entrega | Situação | Onde está |
+| Etapa | Entrega | Situação | Onde está |
 | --- | --- | --- | --- |
-| 1 | Levantamento de requisitos | Concluída | [docs/01-requisitos](docs/01-requisitos/) |
-| 2 | Wireframes | Concluída | [docs/02-wireframes](docs/02-wireframes/) |
-| 3 | UX/UI e protótipo navegável | Concluída | [docs/03-ux-ui](docs/03-ux-ui/) |
-| 4 | Banco de dados | Concluída | [docs/04-banco-de-dados](docs/04-banco-de-dados/) |
-| 5 | Repositório e versionamento | Concluída | [docs/05-repositorio](docs/05-repositorio/) |
-| 6 | Arquitetura e padrões | Concluída | [docs/06-arquitetura](docs/06-arquitetura/) |
-| 7 | Gerenciamento do projeto | A fazer | — |
-| 8 | Plano e execução de testes | A fazer | — |
-| 9 | Relatório técnico | A fazer | — |
+| 1 | Entrega 1: levantamento de requisitos | Concluída | [docs/01-requisitos](docs/01-requisitos/) |
+| 2 | Entrega 2: wireframes | Concluída | [docs/02-wireframes](docs/02-wireframes/) |
+| 3 | Entrega 3: UX/UI e protótipo navegável | Concluída | [docs/03-ux-ui](docs/03-ux-ui/) |
+| 4 | Entrega 4: banco de dados | Concluída | [docs/04-banco-de-dados](docs/04-banco-de-dados/) |
+| 5 | Entrega 5: repositório e versionamento | Concluída | [docs/05-repositorio](docs/05-repositorio/) |
+| 6 | Entrega 6: arquitetura e padrões | Concluída | [docs/06-arquitetura](docs/06-arquitetura/) |
+| 7 | Entrega 7: gerenciamento do projeto | Não realizada | — |
+| 8 | Checkpoint 1: definição do MVP | Concluída | [docs/08-mvp](docs/08-mvp/) |
+| 9 | Checkpoint 2: MVP funcional (`v0.1.0`) | Concluída | [docs/09-mvp-funcional](docs/09-mvp-funcional/) |
+| 10 | Checkpoint 3: evolução | A fazer | — |
+| 11 | Checkpoint 4: nova versão | A fazer | — |
+| 12 | Entrega 8: plano e execução de testes | A fazer | — |
+| 13 | Checkpoint 5: release candidate | A fazer | — |
+| 14 | Entrega 9: relatório técnico | A fazer | — |
 
 ## Tecnologias
 
@@ -68,18 +76,22 @@ python manage.py carregar_dados_exemplo
 python manage.py runserver
 ```
 
-Abra **http://127.0.0.1:8000** no navegador. Para parar o servidor, use `Ctrl + C` no terminal.
+Abra **http://127.0.0.1:8000** no navegador: a tela de entrada aparece, com login e cadastro de cliente.
+Para parar o servidor, use `Ctrl + C` no terminal.
 
 **Usuários de exemplo** (senha de todos: `atende123`):
 
-| Perfil | E-mail |
-| --- | --- |
-| Administrador | juliana@empresa.com |
-| Atendente | carlos@empresa.com |
-| Cliente | maria@souzacomercio.com.br |
+| Perfil | E-mail | Começa em |
+| --- | --- | --- |
+| Administradora | juliana@empresa.com | Fila; também acessa *Administração* |
+| Atendente | carlos@empresa.com | Fila de atendimento |
+| Atendente | ana@empresa.com | Fila de atendimento |
+| Cliente | maria@souzacomercio.com.br | Meus tickets |
 
-Enquanto as telas do MVP não ficam prontas, os dados podem ser vistos na área técnica do Django,
-em http://127.0.0.1:8000/admin, entrando como a administradora.
+O roteiro de demonstração passo a passo está em [docs/09-mvp-funcional](docs/09-mvp-funcional/#4-roteiro-de-demonstração).
+
+Todos os dados também podem ser vistos na área técnica do Django, em http://127.0.0.1:8000/admin,
+entrando como a administradora.
 
 **Testes automatizados**
 
@@ -110,7 +122,9 @@ projeto_atende_mais/
 │   ├── 03-ux-ui/          inclui o protótipo navegável
 │   ├── 04-banco-de-dados/
 │   ├── 05-repositorio/
-│   └── 06-arquitetura/
+│   ├── 06-arquitetura/
+│   ├── 08-mvp/            Checkpoint 1: definição do MVP
+│   └── 09-mvp-funcional/  Checkpoint 2: MVP funcional, com capturas de tela
 ├── .github/               modelo de pull request
 ├── .editorconfig          estilo dos arquivos
 ├── .gitattributes         quebras de linha padronizadas

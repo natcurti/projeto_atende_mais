@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block titulo %}Renomear categoria{% endblock %}
+
+{% block conteudo %}
+<a class="voltar" href="{% url 'contas:administracao' %}">Voltar para Administração</a>
+<div class="cabecalho-pagina">
+  <div>
+    <h1>Renomear categoria</h1>
+    <p class="subtitulo">Os tickets que já usam esta categoria passam a mostrar o nome novo.</p>
+  </div>
+</div>
+
+<section class="painel formulario-estreito">
+  <form class="formulario" method="post" novalidate>
+    {% csrf_token %}
+    {% include "includes/campo.html" with campo=form.nome %}
+    <div class="acoes-formulario">
+      <a class="botao" href="{% url 'contas:administracao' %}">Cancelar</a>
+      <button class="botao botao-principal" type="submit">Salvar nome</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block titulo %}Meus tickets{% endblock %}
+
+{% block conteudo %}
+<div class="cabecalho-pagina">
+  <div>
+    <h1>Meus tickets</h1>
+    <p class="subtitulo">
+      {% if aguardando_resposta == 1 %}1 ticket espera uma resposta sua.
+      {% elif aguardando_resposta > 1 %}{{ aguardando_resposta }} tickets esperam uma resposta sua.
+      {% else %}Acompanhe aqui cada pedido de suporte.{% endif %}
+    </p>
+  </div>
+  <div class="acoes"><a class="botao botao-principal" href="{% url 'tickets:novo_ticket' %}">Abrir ticket</a></div>
+</div>
+
+{% if not tem_tickets %}
+  <div class="painel vazio">
+    <h2>Você ainda não abriu nenhum ticket</h2>
+    <p>Quando precisar de ajuda com o sistema, abra um ticket e acompanhe a resposta da equipe por aqui.</p>
+    <a class="botao botao-principal" href="{% url 'tickets:novo_ticket' %}">Abrir o primeiro ticket</a>
+  </div>
+{% else %}
+  <form class="filtros compacto" method="get" role="search">
+    <div class="campo">
+      <label for="filtro-situacao">Situação</label>
+      <select id="filtro-situacao" name="situacao" onchange="this.form.submit()">
+        <option value="">Todas</option>
+        {% for valor, nome in situacoes %}
+          <option value="{{ valor }}"{% if valor == situacao %} selected{% endif %}>{{ nome }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <noscript><button class="botao" type="submit">Filtrar</button></noscript>
+  </form>
+
+  {% if tickets %}
+    <div class="tabela-caixa">
+      <table class="tabela-responsiva">
+        <caption class="sr-only">Seus tickets, do mais recente para o mais antigo</caption>
+        <thead>
+          <tr><th scope="col">Nº</th><th scope="col">Título</th><th scope="col">Categoria</th><th scope="col">Situação</th><th scope="col">Última atualização</th></tr>
+        </thead>
+        <tbody>
+          {% for t in tickets %}
+            <tr>
+              <td class="numero col-numero">{{ t.numero }}</td>
+              <td class="col-titulo"><a class="titulo-ticket" href="{% url 'tickets:ticket_cliente' t.pk %}">{{ t.titulo }}</a></td>
+              <td class="col-detalhe">{{ t.categoria }}</td>
+              <td class="col-situacao">{% include "includes/situacao.html" %}</td>
+              <td class="col-detalhe"><span class="so-celular">Atualizado em </span>{{ t.atualizado_em|date:"d/m, H:i" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="painel vazio">
+      <p>Nenhum ticket nesta situação. <a href="{% url 'tickets:meus_tickets' %}">Ver todos</a></p>
+    </div>
+  {% endif %}
+{% endif %}
+{% endblock %}

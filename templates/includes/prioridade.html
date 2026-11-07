@@ -1,0 +1,2 @@
+{# Prioridade com barras de intensidade. Uso: {% include "includes/prioridade.html" with t=ticket %} #}
+<span class="prioridade p-{{ t.prioridade }}"><span class="barras" aria-hidden="true"><i></i><i></i><i></i><i></i></span>{{ t.get_prioridade_display }}</span>

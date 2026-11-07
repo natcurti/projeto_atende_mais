@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block titulo %}Administração{% endblock %}
+
+{% block conteudo %}
+<div class="cabecalho-pagina">
+  <div>
+    <h1>Administração</h1>
+    <p class="subtitulo">Equipe de suporte e categorias de ticket. Nada é excluído: o que for desativado continua nos tickets antigos.</p>
+  </div>
+</div>
+
+<div class="duas-colunas">
+  <section class="principal" aria-labelledby="titulo-equipe">
+    <div class="cabecalho-pagina cabecalho-secao">
+      <h2 id="titulo-equipe">Equipe</h2>
+      <div class="acoes"><a class="botao botao-principal" href="{% url 'contas:nova_pessoa' %}">Adicionar pessoa</a></div>
+    </div>
+    <div class="tabela-caixa">
+      <table class="tabela-responsiva">
+        <caption class="sr-only">Pessoas da equipe de suporte</caption>
+        <thead>
+          <tr><th scope="col">Nome</th><th scope="col">E-mail</th><th scope="col">Perfil</th><th scope="col">Acesso</th><th scope="col"><span class="sr-only">Ações</span></th></tr>
+        </thead>
+        <tbody>
+          {% for pessoa in equipe %}
+            <tr{% if not pessoa.is_active %} class="inativo"{% endif %}>
+              <td class="col-titulo"><strong>{{ pessoa.nome }}</strong>{% if pessoa == user %} <span class="dica">(você)</span>{% endif %}</td>
+              <td class="col-detalhe quebra">{{ pessoa.email }}</td>
+              <td class="col-detalhe">{{ pessoa.get_perfil_display }}</td>
+              <td class="col-detalhe">{% if pessoa.is_active %}Ativo{% else %}Desativado{% endif %}</td>
+              <td class="col-acoes">
+                <a class="botao-texto" href="{% url 'contas:editar_pessoa' pessoa.pk %}" aria-label="Editar {{ pessoa.nome }}">Editar</a>
+                {% if pessoa != user %}
+                  <form method="post" action="{% url 'contas:alterar_acesso' pessoa.pk %}">
+                    {% csrf_token %}
+                    <button class="botao-texto{% if pessoa.is_active %} texto-perigo{% endif %}" type="submit" aria-label="{% if pessoa.is_active %}Desativar{% else %}Reativar{% endif %} {{ pessoa.nome }}">
+                      {% if pessoa.is_active %}Desativar{% else %}Reativar{% endif %}
+                    </button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <aside class="lateral" aria-labelledby="titulo-categorias">
+    <div class="painel">
+      <h2 id="titulo-categorias">Categorias</h2>
+      <ul class="lista-categorias">
+        {% for categoria in categorias %}
+          <li{% if not categoria.ativa %} class="inativo"{% endif %}>
+            <span>{{ categoria.nome }}{% if not categoria.ativa %} <span class="dica">(desativada)</span>{% endif %}</span>
+            <span class="col-acoes">
+              <a class="botao-texto" href="{% url 'tickets:editar_categoria' categoria.pk %}" aria-label="Renomear {{ categoria.nome }}">Renomear</a>
+              <form method="post" action="{% url 'tickets:alterar_categoria' categoria.pk %}">
+                {% csrf_token %}
+                <button class="botao-texto{% if categoria.ativa %} texto-perigo{% endif %}" type="submit" aria-label="{% if categoria.ativa %}Desativar{% else %}Reativar{% endif %} {{ categoria.nome }}">
+                  {% if categoria.ativa %}Desativar{% else %}Reativar{% endif %}
+                </button>
+              </form>
+            </span>
+          </li>
+        {% empty %}
+          <li>Nenhuma categoria cadastrada.</li>
+        {% endfor %}
+      </ul>
+      <form class="formulario" method="post" action="{% url 'tickets:nova_categoria' %}" style="margin-top:20px">
+        {% csrf_token %}
+        {% include "includes/campo.html" with campo=form_categoria.nome %}
+        <button class="botao" type="submit">Adicionar categoria</button>
+      </form>
+    </div>
+  </aside>
+</div>
+{% endblock %}
