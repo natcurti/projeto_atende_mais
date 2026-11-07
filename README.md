@@ -5,8 +5,9 @@ acompanha cada um até a solução, e a gestão vê indicadores do atendimento.
 
 Projeto da disciplina do curso de **Análise e Desenvolvimento de Sistemas — FATEC**.
 
-**Versão atual:** `v0.1.0` (MVP), com cadastro e login, abertura e acompanhamento de tickets pelo cliente,
-fila de atendimento, atendimento pela equipe e administração. Veja o [Checkpoint 2](docs/09-mvp-funcional/).
+**Versão atual:** `v0.2.0`. Sobre o MVP (cadastro e login, tickets do cliente, fila, atendimento e administração),
+acrescenta notas internas, mudança de prioridade, avaliação do atendimento e painel de indicadores.
+Veja o [Checkpoint 2](docs/09-mvp-funcional/) e os [Checkpoints 3 e 4](docs/10-evolucao/).
 
 **Protótipo navegável:** https://natcurti.github.io/projeto_atende_mais/03-ux-ui/prototipo/
 
@@ -23,8 +24,8 @@ fila de atendimento, atendimento pela equipe e administração. Veja o [Checkpoi
 | 7 | Entrega 7: gerenciamento do projeto | Não realizada | — |
 | 8 | Checkpoint 1: definição do MVP | Concluída | [docs/08-mvp](docs/08-mvp/) |
 | 9 | Checkpoint 2: MVP funcional (`v0.1.0`) | Concluída | [docs/09-mvp-funcional](docs/09-mvp-funcional/) |
-| 10 | Checkpoint 3: evolução | A fazer | — |
-| 11 | Checkpoint 4: nova versão | A fazer | — |
+| 10 | Checkpoint 3: evolução | Concluída | [docs/10-evolucao](docs/10-evolucao/) |
+| 11 | Checkpoint 4: nova versão (`v0.2.0`) | Concluída | [docs/10-evolucao](docs/10-evolucao/) |
 | 12 | Entrega 8: plano e execução de testes | A fazer | — |
 | 13 | Checkpoint 5: release candidate | A fazer | — |
 | 14 | Entrega 9: relatório técnico | A fazer | — |
@@ -83,12 +84,13 @@ Para parar o servidor, use `Ctrl + C` no terminal.
 
 | Perfil | E-mail | Começa em |
 | --- | --- | --- |
-| Administradora | juliana@empresa.com | Fila; também acessa *Administração* |
+| Administradora | juliana@empresa.com | Fila; também acessa *Painel* e *Administração* |
 | Atendente | carlos@empresa.com | Fila de atendimento |
 | Atendente | ana@empresa.com | Fila de atendimento |
 | Cliente | maria@souzacomercio.com.br | Meus tickets |
 
-O roteiro de demonstração passo a passo está em [docs/09-mvp-funcional](docs/09-mvp-funcional/#4-roteiro-de-demonstração).
+O roteiro de demonstração passo a passo está em [docs/09-mvp-funcional](docs/09-mvp-funcional/#4-roteiro-de-demonstração),
+e o das funcionalidades da `v0.2.0` em [docs/10-evolucao](docs/10-evolucao/#5-como-ver-a-nova-versão).
 
 Todos os dados também podem ser vistos na área técnica do Django, em http://127.0.0.1:8000/admin,
 entrando como a administradora.
@@ -111,6 +113,7 @@ projeto_atende_mais/
 ├── config/                configurações do Django e rotas principais
 ├── contas/                app de usuários (cliente, atendente, administrador)
 ├── tickets/               app de atendimento (tickets, mensagens, regras de negócio)
+├── painel/                app do painel de indicadores
 ├── templates/             páginas HTML
 ├── static/                CSS e JavaScript
 ├── manage.py              comando de administração do Django
@@ -124,7 +127,8 @@ projeto_atende_mais/
 │   ├── 05-repositorio/
 │   ├── 06-arquitetura/
 │   ├── 08-mvp/            Checkpoint 1: definição do MVP
-│   └── 09-mvp-funcional/  Checkpoint 2: MVP funcional, com capturas de tela
+│   ├── 09-mvp-funcional/  Checkpoint 2: MVP funcional, com capturas de tela
+│   └── 10-evolucao/       Checkpoints 3 e 4: evolução e versão v0.2.0
 ├── .github/               modelo de pull request
 ├── .editorconfig          estilo dos arquivos
 ├── .gitattributes         quebras de linha padronizadas
