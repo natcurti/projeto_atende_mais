@@ -67,6 +67,7 @@ def abrir_ticket(cliente, titulo, descricao, categoria):
 def responder(ticket, autor, texto, interna=False):
     """
     RF12: adiciona uma mensagem à conversa do ticket.
+    RF13: com interna=True, é uma nota da equipe que o cliente nunca vê (RN08).
     RN06: se o cliente responde um ticket Aguardando cliente, ele volta para Em atendimento.
     """
     if not ticket.aceita_resposta:
@@ -75,10 +76,15 @@ def responder(ticket, autor, texto, interna=False):
         raise RegraDeNegocioError("Clientes só respondem os próprios tickets.")
     if autor.eh_cliente and interna:
         raise RegraDeNegocioError("Clientes não escrevem notas internas.")
-    if autor.eh_equipe and not pode_atuar(autor, ticket):
+    # RN05 vale para o que o cliente vê. Uma nota interna não altera o ticket,
+    # então qualquer pessoa da equipe pode deixar uma, mesmo em ticket de outra pessoa.
+    if autor.eh_equipe and not interna and not pode_atuar(autor, ticket):
         raise RegraDeNegocioError(motivo_para_nao_atuar(autor, ticket))
 
     mensagem = Mensagem.objects.create(ticket=ticket, autor=autor, texto=texto.strip(), interna=interna)
+    if interna:
+        # Não atualiza "atualizado_em": o cliente não pode perceber movimento que não consegue ver.
+        return mensagem
 
     if autor.eh_cliente and ticket.situacao == Ticket.Situacao.AGUARDANDO_CLIENTE:
         registrar_historico(

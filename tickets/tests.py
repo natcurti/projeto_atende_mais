@@ -514,18 +514,18 @@ class TelaDeAtendimentoTests(AtendimentoTestCase):
         self.assertContains(resposta, "Verificar certificado.")
         self.assertContains(resposta, "Nota interna")
 
-    def test_ticket_aberto_mostra_assumir_e_nao_o_campo_de_resposta(self):
+    def test_ticket_aberto_mostra_assumir_e_so_permite_nota_interna(self):
         self.client.force_login(self.carlos)
         resposta = self.client.get(self.url())
         self.assertContains(resposta, "Assumir ticket")
-        self.assertNotContains(resposta, "Enviar mensagem")
+        self.assertEqual(resposta.context["form"].fields["tipo"].choices, [("interna", "Nota interna")])
 
     def test_assumir_pela_fila_leva_para_o_ticket(self):
         self.client.force_login(self.carlos)
         resposta = self.client.post(self.url("tickets:assumir"), follow=True)
         self.assertRedirects(resposta, self.url())
         self.assertContains(resposta, f"Ticket {self.aberto.numero} assumido")
-        self.assertContains(resposta, "Enviar mensagem")
+        self.assertContains(resposta, "Mensagem ao cliente")
 
     def test_assumir_so_por_post(self):
         self.client.force_login(self.carlos)
@@ -654,3 +654,52 @@ class AdministracaoCategoriasTests(TestCase):
         self.client.post(reverse("tickets:alterar_categoria", args=[self.duvida.pk]))
         self.duvida.refresh_from_db()
         self.assertTrue(self.duvida.ativa)
+
+
+# ==========================================================
+# Evolução (v0.2.0) — E1: notas internas (RF13)
+# ==========================================================
+
+class NotasInternasTests(AtendimentoTestCase):
+    def url(self):
+        return reverse("tickets:ticket_equipe", args=[self.aberto.pk])
+
+    def test_responsavel_escreve_nota_e_o_cliente_nao_ve(self):  # RF13, RN08
+        self.com_carlos()
+        self.client.force_login(self.carlos)
+        resposta = self.client.post(self.url(), {"tipo": "interna", "texto": "Cliente usa a versão antiga."}, follow=True)
+        self.assertContains(resposta, "Nota interna salva.")
+        nota = self.aberto.mensagens.get()
+        self.assertTrue(nota.interna)
+        self.client.force_login(self.maria)
+        cliente = self.client.get(reverse("tickets:ticket_cliente", args=[self.aberto.pk]))
+        self.assertNotContains(cliente, "Cliente usa a versão antiga.")
+
+    def test_nota_nao_muda_a_ultima_atualizacao_vista_pelo_cliente(self):
+        self.com_carlos()
+        antes = Ticket.objects.get(pk=self.aberto.pk).atualizado_em
+        services.responder(self.aberto, self.carlos, "Anotação", interna=True)
+        self.assertEqual(Ticket.objects.get(pk=self.aberto.pk).atualizado_em, antes)
+
+    def test_outro_atendente_deixa_nota_mas_nao_responde_ao_cliente(self):  # RN05
+        self.com_carlos()
+        services.responder(self.aberto, self.ana, "Já vi esse erro antes, fala comigo.", interna=True)
+        with self.assertRaises(services.RegraDeNegocioError):
+            services.responder(self.aberto, self.ana, "Oi, Maria", interna=False)
+        self.client.force_login(self.ana)
+        self.client.post(self.url(), {"tipo": "cliente", "texto": "Tentando responder ao cliente"})
+        self.assertFalse(self.aberto.mensagens.filter(texto="Tentando responder ao cliente").exists())
+
+    def test_ticket_aberto_aceita_nota_antes_de_ser_assumido(self):
+        self.client.force_login(self.ana)
+        self.client.post(self.url(), {"texto": "Parece urgente, alguém pega?"})  # sem tipo: só pode ser nota
+        nota = self.aberto.mensagens.get()
+        self.assertTrue(nota.interna)
+        self.aberto.refresh_from_db()
+        self.assertEqual(self.aberto.situacao, "aberto")
+
+    def test_tipo_padrao_do_responsavel_e_mensagem_ao_cliente(self):
+        self.com_carlos()
+        self.client.force_login(self.carlos)
+        self.client.post(self.url(), {"texto": "Olá, Maria!"})
+        self.assertFalse(self.aberto.mensagens.get().interna)

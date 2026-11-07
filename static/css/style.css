@@ -568,3 +568,16 @@ tr.inativo td, li.inativo > span:first-child { color: var(--texto-suave); }
 @media (max-width: 640px) {
   .tabela-responsiva .col-acoes { order: 5; flex-basis: 100%; }
 }
+
+/* ---------- Mensagem ao cliente ou nota interna (RF13) ---------- */
+.alternador-tipo {
+  display: inline-flex; flex-wrap: wrap; margin: 0; padding: 0; border: 2px solid var(--petroleo);
+  border-radius: var(--raio); overflow: hidden; width: max-content; max-width: 100%;
+}
+.opcao-tipo { position: relative; display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; font-weight: 700; color: var(--petroleo); background: var(--superficie); cursor: pointer; }
+.opcao-tipo input { position: absolute; opacity: 0; pointer-events: none; }
+.opcao-tipo:has(input:checked) { background: var(--petroleo); color: #fff; }
+.opcao-tipo:has(input:focus-visible) { outline: 3px solid var(--sinal); outline-offset: -3px; }
+.dica-nota { display: none; }
+.responder:has(input[value="interna"]:checked) .dica-nota { display: block; font-weight: 700; color: #6B5100; }
+.responder:has(input[value="interna"]:checked) textarea { background: var(--sinal-claro); border-color: #C99A00; }
