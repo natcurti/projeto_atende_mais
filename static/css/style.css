@@ -528,6 +528,8 @@ tr.linha-atrasada td:first-child { box-shadow: inset 4px 0 0 var(--atrasado-tx);
 .paginacao { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px; margin-top: 20px; }
 @media (min-width: 641px) {
   .tabela-responsiva .col-detalhe { white-space: nowrap; }
+  .tabela-responsiva .col-titulo { min-width: 200px; }
+  .tabela-responsiva th, .tabela-responsiva td { padding-left: 12px; padding-right: 12px; }
 }
 @media (max-width: 640px) {
   .contadores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
