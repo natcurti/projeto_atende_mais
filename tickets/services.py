@@ -75,6 +75,8 @@ def responder(ticket, autor, texto, interna=False):
         raise RegraDeNegocioError("Clientes só respondem os próprios tickets.")
     if autor.eh_cliente and interna:
         raise RegraDeNegocioError("Clientes não escrevem notas internas.")
+    if autor.eh_equipe and not pode_atuar(autor, ticket):
+        raise RegraDeNegocioError(motivo_para_nao_atuar(autor, ticket))
 
     mensagem = Mensagem.objects.create(ticket=ticket, autor=autor, texto=texto.strip(), interna=interna)
 
@@ -87,6 +89,104 @@ def responder(ticket, autor, texto, interna=False):
 
     ticket.save()  # atualiza "atualizado_em", que ordena Meus tickets
     return mensagem
+
+
+# ---------- Atendimento pela equipe (RF10, RF11) ----------
+
+# RF11: mudanças de situação que a equipe pode fazer. Reabrir (RF15) e fechar (RN07) vêm depois do MVP.
+TRANSICOES_DA_EQUIPE = {
+    Ticket.Situacao.EM_ATENDIMENTO: [Ticket.Situacao.AGUARDANDO_CLIENTE, Ticket.Situacao.RESOLVIDO],
+    Ticket.Situacao.AGUARDANDO_CLIENTE: [Ticket.Situacao.EM_ATENDIMENTO, Ticket.Situacao.RESOLVIDO],
+}
+
+
+def pode_atuar(usuario, ticket):
+    """
+    RN05: só o atendente responsável ou um administrador altera o ticket.
+    Um ticket sem atendente (Aberto) precisa ser assumido antes.
+    """
+    if not usuario.eh_equipe or ticket.atendente_id is None:
+        return False
+    return usuario.pk == ticket.atendente_id or usuario.perfil == usuario.Perfil.ADMINISTRADOR
+
+
+def motivo_para_nao_atuar(usuario, ticket):
+    """Explica por que pode_atuar() é falso, em linguagem do usuário."""
+    if ticket.atendente_id is None:
+        return "Assuma o ticket antes de responder ou mudar a situação."
+    return f"Este ticket está com {ticket.atendente.nome}. Só a pessoa responsável ou um administrador pode alterá-lo."
+
+
+def situacoes_possiveis(ticket):
+    """Situações para as quais a equipe pode levar o ticket agora."""
+    return TRANSICOES_DA_EQUIPE.get(ticket.situacao, [])
+
+
+def _equipe_ativa(usuario):
+    return usuario is not None and usuario.eh_equipe and usuario.is_active
+
+
+@transaction.atomic
+def assumir(ticket, usuario):
+    """RF10, RN04: o atendente pega um ticket Aberto; ele passa para Em atendimento."""
+    if not _equipe_ativa(usuario):
+        raise RegraDeNegocioError("Só a equipe de suporte assume tickets.")
+    if ticket.situacao != Ticket.Situacao.ABERTO:
+        if ticket.atendente_id == usuario.pk:
+            raise RegraDeNegocioError("Este ticket já está com você.")
+        raise RegraDeNegocioError(f"Este ticket já está com {ticket.atendente.nome}.")
+
+    agora = timezone.now()
+    registrar_historico(ticket, usuario, Historico.Campo.ATENDENTE, None, usuario.nome, quando=agora)
+    registrar_historico(ticket, usuario, Historico.Campo.SITUACAO, ticket.situacao, Ticket.Situacao.EM_ATENDIMENTO, quando=agora)
+    ticket.atendente = usuario
+    ticket.situacao = Ticket.Situacao.EM_ATENDIMENTO
+    ticket.save()
+    return ticket
+
+
+@transaction.atomic
+def atribuir(ticket, administrador, novo_atendente):
+    """RF10: o administrador passa o ticket para outra pessoa da equipe."""
+    if administrador.perfil != administrador.Perfil.ADMINISTRADOR:
+        raise RegraDeNegocioError("Só administradores passam tickets para outra pessoa.")
+    if not _equipe_ativa(novo_atendente):
+        raise RegraDeNegocioError("Escolha uma pessoa ativa da equipe de suporte.")
+    if not ticket.aceita_resposta:
+        raise RegraDeNegocioError("Tickets resolvidos ou fechados não mudam de atendente.")
+    if ticket.atendente_id == novo_atendente.pk:
+        return ticket
+
+    agora = timezone.now()
+    anterior = ticket.atendente.nome if ticket.atendente_id else None
+    registrar_historico(ticket, administrador, Historico.Campo.ATENDENTE, anterior, novo_atendente.nome, quando=agora)
+    if ticket.situacao == Ticket.Situacao.ABERTO:  # RN04: com atendente, deixa de estar Aberto
+        registrar_historico(ticket, administrador, Historico.Campo.SITUACAO, ticket.situacao, Ticket.Situacao.EM_ATENDIMENTO, quando=agora)
+        ticket.situacao = Ticket.Situacao.EM_ATENDIMENTO
+    ticket.atendente = novo_atendente
+    ticket.save()
+    return ticket
+
+
+@transaction.atomic
+def mudar_situacao(ticket, usuario, nova):
+    """RF11, RN05: o responsável ou um administrador muda a situação; Resolvido grava a data."""
+    if not pode_atuar(usuario, ticket):
+        raise RegraDeNegocioError(motivo_para_nao_atuar(usuario, ticket))
+    if nova == ticket.situacao:
+        return ticket
+    if nova not in situacoes_possiveis(ticket):
+        raise RegraDeNegocioError(
+            f"Um ticket {ticket.get_situacao_display()} não pode passar para {Ticket.Situacao(nova).label}."
+        )
+
+    agora = timezone.now()
+    registrar_historico(ticket, usuario, Historico.Campo.SITUACAO, ticket.situacao, nova, quando=agora)
+    ticket.situacao = nova
+    if nova == Ticket.Situacao.RESOLVIDO:
+        ticket.resolvido_em = agora
+    ticket.save()
+    return ticket
 
 
 @dataclass

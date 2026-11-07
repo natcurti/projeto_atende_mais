@@ -536,3 +536,14 @@ tr.linha-atrasada td:first-child { box-shadow: inset 4px 0 0 var(--atrasado-tx);
   .tabela-responsiva tbody tr.linha-atrasada { box-shadow: inset 4px 0 0 var(--atrasado-tx); }
   .tabela-responsiva tbody tr.linha-atrasada td:first-child { box-shadow: none; }
 }
+
+/* ---------- Atendimento (F4) ---------- */
+.col-acao form { margin: 0; }
+.destaque-acao { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; border-color: var(--petroleo); }
+.quebra { overflow-wrap: anywhere; }
+.subtitulo .situacao + .situacao { margin-left: 6px; }
+@media (max-width: 640px) {
+  .tabela-responsiva .col-acao { order: 5; flex-basis: 100%; }
+  .tabela-responsiva .col-acao .botao { width: 100%; }
+  .so-computador { display: none; } /* no celular, o título do ticket já é o link */
+}

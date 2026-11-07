@@ -389,3 +389,215 @@ class FilaTests(FilaTestCase):
     def test_cliente_nao_acessa_a_fila(self):
         self.client.force_login(self.maria)
         self.assertEqual(self.client.get(reverse("tickets:fila")).status_code, 403)
+
+
+# ==========================================================
+# F4: atender o ticket (RF09, RF10, RF11, RF12, RN04, RN05, RN13)
+# ==========================================================
+
+class AtendimentoTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.carlos = Usuario.objects.create_user("carlos@empresa.com", SENHA, nome="Carlos Lima", perfil=Usuario.Perfil.ATENDENTE)
+        cls.ana = Usuario.objects.create_user("ana@empresa.com", SENHA, nome="Ana Reis", perfil=Usuario.Perfil.ATENDENTE)
+        cls.juliana = Usuario.objects.create_user("juliana@empresa.com", SENHA, nome="Juliana Prado", perfil=Usuario.Perfil.ADMINISTRADOR)
+        cls.pedro = Usuario.objects.create_user(
+            "pedro@empresa.com", SENHA, nome="Pedro Alves", perfil=Usuario.Perfil.ATENDENTE, is_active=False
+        )
+        cls.maria = Usuario.objects.create_user("maria@exemplo.com", SENHA, nome="Maria Souza", empresa="Souza ME")
+        cls.erro = Categoria.objects.create(nome="Erro no sistema")
+
+    def setUp(self):
+        self.aberto = Ticket.objects.create(cliente=self.maria, categoria=self.erro, titulo="Erro na nota", descricao="Falha.")
+
+    def com_carlos(self):
+        services.assumir(self.aberto, self.carlos)
+        return self.aberto
+
+
+class AssumirEAtribuirTests(AtendimentoTestCase):
+    def test_assumir_coloca_o_ticket_com_o_atendente_e_registra_no_historico(self):  # RF10, RN04, RN13
+        services.assumir(self.aberto, self.carlos)
+        self.aberto.refresh_from_db()
+        self.assertEqual((self.aberto.atendente, self.aberto.situacao), (self.carlos, "em_atendimento"))
+        eventos = [(h.campo, h.valor_anterior, h.valor_novo) for h in self.aberto.historico.all()]
+        self.assertEqual(eventos, [("atendente", None, "Carlos Lima"), ("situacao", "aberto", "em_atendimento")])
+
+    def test_nao_assume_ticket_que_ja_tem_atendente(self):
+        self.com_carlos()
+        with self.assertRaisesMessage(services.RegraDeNegocioError, "já está com Carlos Lima"):
+            services.assumir(self.aberto, self.ana)
+
+    def test_cliente_nao_assume(self):
+        with self.assertRaises(services.RegraDeNegocioError):
+            services.assumir(self.aberto, self.maria)
+
+    def test_administrador_passa_ticket_aberto_para_alguem(self):  # RF10
+        services.atribuir(self.aberto, self.juliana, self.ana)
+        self.aberto.refresh_from_db()
+        self.assertEqual((self.aberto.atendente, self.aberto.situacao), (self.ana, "em_atendimento"))
+        self.assertEqual(self.aberto.historico.first().descricao, "Juliana Prado passou o atendimento para Ana Reis")
+
+    def test_administrador_troca_o_atendente(self):
+        self.com_carlos()
+        services.atribuir(self.aberto, self.juliana, self.ana)
+        evento = self.aberto.historico.filter(campo="atendente").last()
+        self.assertEqual((evento.valor_anterior, evento.valor_novo), ("Carlos Lima", "Ana Reis"))
+
+    def test_so_administrador_atribui_e_so_para_equipe_ativa(self):
+        with self.assertRaises(services.RegraDeNegocioError):
+            services.atribuir(self.aberto, self.carlos, self.ana)
+        with self.assertRaises(services.RegraDeNegocioError):
+            services.atribuir(self.aberto, self.juliana, self.pedro)  # desativado
+        with self.assertRaises(services.RegraDeNegocioError):
+            services.atribuir(self.aberto, self.juliana, self.maria)  # cliente
+
+
+class MudarSituacaoTests(AtendimentoTestCase):
+    def test_responsavel_pede_informacao_e_resolve(self):  # RF11
+        self.com_carlos()
+        services.mudar_situacao(self.aberto, self.carlos, "aguardando_cliente")
+        self.assertEqual(self.aberto.situacao, "aguardando_cliente")
+        services.mudar_situacao(self.aberto, self.carlos, "resolvido")
+        self.aberto.refresh_from_db()
+        self.assertEqual(self.aberto.situacao, "resolvido")
+        self.assertIsNotNone(self.aberto.resolvido_em)
+
+    def test_outro_atendente_nao_muda_a_situacao(self):  # RN05
+        self.com_carlos()
+        with self.assertRaisesMessage(services.RegraDeNegocioError, "está com Carlos Lima"):
+            services.mudar_situacao(self.aberto, self.ana, "resolvido")
+
+    def test_administrador_muda_a_situacao_de_qualquer_ticket(self):  # RN05
+        self.com_carlos()
+        services.mudar_situacao(self.aberto, self.juliana, "resolvido")
+        self.assertEqual(self.aberto.situacao, "resolvido")
+
+    def test_ticket_aberto_precisa_ser_assumido_antes(self):
+        with self.assertRaisesMessage(services.RegraDeNegocioError, "Assuma o ticket"):
+            services.mudar_situacao(self.aberto, self.juliana, "resolvido")
+
+    def test_transicoes_nao_permitidas(self):
+        self.com_carlos()
+        with self.assertRaises(services.RegraDeNegocioError):
+            services.mudar_situacao(self.aberto, self.carlos, "aberto")
+        with self.assertRaises(services.RegraDeNegocioError):
+            services.mudar_situacao(self.aberto, self.carlos, "fechado")
+        services.mudar_situacao(self.aberto, self.carlos, "resolvido")
+        with self.assertRaises(services.RegraDeNegocioError):
+            services.mudar_situacao(self.aberto, self.carlos, "em_atendimento")  # reabrir é RF15, depois do MVP
+
+    def test_equipe_so_responde_quando_pode_atuar(self):  # RN05
+        with self.assertRaisesMessage(services.RegraDeNegocioError, "Assuma o ticket"):
+            services.responder(self.aberto, self.carlos, "Oi")
+        self.com_carlos()
+        with self.assertRaises(services.RegraDeNegocioError):
+            services.responder(self.aberto, self.ana, "Oi")
+        services.responder(self.aberto, self.juliana, "Oi, sou a coordenadora.")
+
+
+class TelaDeAtendimentoTests(AtendimentoTestCase):
+    def url(self, nome="tickets:ticket_equipe"):
+        return reverse(nome, args=[self.aberto.pk])
+
+    def test_cliente_nao_acessa_e_numero_inexistente_da_404(self):
+        self.client.force_login(self.maria)
+        self.assertEqual(self.client.get(self.url()).status_code, 403)
+        self.client.force_login(self.carlos)
+        self.assertEqual(self.client.get(reverse("tickets:ticket_equipe", args=[999999])).status_code, 404)
+
+    def test_equipe_ve_as_notas_internas(self):  # RF09
+        self.com_carlos()
+        Mensagem.objects.create(ticket=self.aberto, autor=self.carlos, texto="Verificar certificado.", interna=True)
+        self.client.force_login(self.ana)
+        resposta = self.client.get(self.url())
+        self.assertContains(resposta, "Verificar certificado.")
+        self.assertContains(resposta, "Nota interna")
+
+    def test_ticket_aberto_mostra_assumir_e_nao_o_campo_de_resposta(self):
+        self.client.force_login(self.carlos)
+        resposta = self.client.get(self.url())
+        self.assertContains(resposta, "Assumir ticket")
+        self.assertNotContains(resposta, "Enviar mensagem")
+
+    def test_assumir_pela_fila_leva_para_o_ticket(self):
+        self.client.force_login(self.carlos)
+        resposta = self.client.post(self.url("tickets:assumir"), follow=True)
+        self.assertRedirects(resposta, self.url())
+        self.assertContains(resposta, f"Ticket {self.aberto.numero} assumido")
+        self.assertContains(resposta, "Enviar mensagem")
+
+    def test_assumir_so_por_post(self):
+        self.client.force_login(self.carlos)
+        self.assertEqual(self.client.get(self.url("tickets:assumir")).status_code, 405)
+
+    def test_outro_atendente_ve_o_motivo_e_nao_gerencia(self):
+        self.com_carlos()
+        self.client.force_login(self.ana)
+        resposta = self.client.get(self.url())
+        self.assertContains(resposta, "Este ticket está com Carlos Lima")
+        self.assertNotContains(resposta, "Gerenciar ticket")
+        self.client.post(self.url("tickets:gerenciar"), {"situacao": "resolvido"})
+        self.aberto.refresh_from_db()
+        self.assertEqual(self.aberto.situacao, "em_atendimento")
+
+    def test_responsavel_muda_a_situacao_pelo_painel(self):
+        self.com_carlos()
+        self.client.force_login(self.carlos)
+        resposta = self.client.post(self.url("tickets:gerenciar"), {"situacao": "aguardando_cliente"}, follow=True)
+        self.assertContains(resposta, "situação alterada para Aguardando cliente")
+        self.assertContains(resposta, "Situação alterada de Em atendimento para Aguardando cliente")
+
+    def test_administrador_passa_ticket_aberto_pelo_painel(self):
+        self.client.force_login(self.juliana)
+        self.assertContains(self.client.get(self.url()), "Ninguém ainda")
+        resposta = self.client.post(
+            self.url("tickets:gerenciar"), {"atendente": self.ana.pk, "situacao": "aberto"}, follow=True
+        )
+        self.assertContains(resposta, "ticket passado para Ana Reis")
+        self.aberto.refresh_from_db()
+        self.assertEqual((self.aberto.atendente, self.aberto.situacao), (self.ana, "em_atendimento"))
+
+    def test_fila_tem_links_e_botao_assumir(self):
+        self.client.force_login(self.carlos)
+        resposta = self.client.get(reverse("tickets:fila"))
+        self.assertContains(resposta, f'href="{self.url()}"')
+        self.assertContains(resposta, f'action="{self.url("tickets:assumir")}"')
+
+
+class CicloCompletoTests(AtendimentoTestCase):
+    """O roteiro de demonstração do Checkpoint 2, de ponta a ponta, pelas telas."""
+
+    def test_ciclo_do_ticket(self):
+        # 1. Maria abre o ticket
+        self.client.force_login(self.maria)
+        self.client.post(reverse("tickets:novo_ticket"), {"titulo": "Sistema lento", "categoria": self.erro.pk, "descricao": "Demora."})
+        ticket = Ticket.objects.get(titulo="Sistema lento")
+        url_equipe = reverse("tickets:ticket_equipe", args=[ticket.pk])
+        url_cliente = reverse("tickets:ticket_cliente", args=[ticket.pk])
+
+        # 2. Carlos assume pela fila e pede mais informação
+        self.client.force_login(self.carlos)
+        self.client.post(reverse("tickets:assumir", args=[ticket.pk]))
+        self.client.post(url_equipe, {"texto": "Qual relatório está lento?"})
+        self.client.post(reverse("tickets:gerenciar", args=[ticket.pk]), {"situacao": "aguardando_cliente"})
+
+        # 3. Maria responde e o ticket volta para Em atendimento sozinho (RN06)
+        self.client.force_login(self.maria)
+        self.assertContains(self.client.get(url_cliente), "Qual relatório está lento?")
+        self.client.post(url_cliente, {"texto": "O de vendas."})
+        ticket.refresh_from_db()
+        self.assertEqual(ticket.situacao, "em_atendimento")
+
+        # 4. Carlos resolve
+        self.client.force_login(self.carlos)
+        self.client.post(reverse("tickets:gerenciar", args=[ticket.pk]), {"situacao": "resolvido"})
+
+        # 5. Maria vê o ticket resolvido, com todo o histórico, e não pode mais responder
+        self.client.force_login(self.maria)
+        resposta = self.client.get(url_cliente)
+        self.assertContains(resposta, "Resolvido")
+        self.assertContains(resposta, "Carlos Lima assumiu o atendimento")
+        self.assertContains(resposta, "Carlos Lima marcou o ticket como resolvido")
+        self.assertNotContains(resposta, "Enviar mensagem")
+        self.assertEqual(ticket.historico.count(), 5)

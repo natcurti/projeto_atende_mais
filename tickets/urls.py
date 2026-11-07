@@ -11,4 +11,7 @@ urlpatterns = [
     path("meus-tickets/<int:numero>/", views.ticket_cliente, name="ticket_cliente"),
     # Equipe
     path("fila/", views.fila, name="fila"),
+    path("fila/<int:numero>/", views.ticket_equipe, name="ticket_equipe"),
+    path("fila/<int:numero>/assumir/", views.assumir_ticket, name="assumir"),
+    path("fila/<int:numero>/gerenciar/", views.gerenciar_ticket, name="gerenciar"),
 ]

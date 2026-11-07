@@ -21,7 +21,7 @@
           <a href="{% url 'tickets:meus_tickets' %}"{% if atual == 'meus_tickets' or atual == 'ticket_cliente' %} aria-current="page"{% endif %}>Meus tickets</a>
           <a href="{% url 'tickets:novo_ticket' %}"{% if atual == 'novo_ticket' %} aria-current="page"{% endif %}>Abrir ticket</a>
         {% else %}
-          <a href="{% url 'tickets:fila' %}"{% if atual == 'fila' %} aria-current="page"{% endif %}>Fila</a>
+          <a href="{% url 'tickets:fila' %}"{% if atual == 'fila' or atual == 'ticket_equipe' %} aria-current="page"{% endif %}>Fila</a>
         {% endif %}
       </nav>
       {% endwith %}
