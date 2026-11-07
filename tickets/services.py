@@ -279,3 +279,29 @@ def contadores_da_fila():
         aguardando_cliente=Count("id", filter=Q(situacao=Ticket.Situacao.AGUARDANDO_CLIENTE)),
         atrasados=Count("id", filter=_atrasado_agora()),
     )
+
+
+def pode_mudar_prioridade(usuario, ticket):
+    """RF17: o responsável ou um administrador; o administrador também tria tickets ainda abertos."""
+    if not ticket.aceita_resposta:
+        return False
+    return pode_atuar(usuario, ticket) or (usuario.eh_equipe and usuario.perfil == usuario.Perfil.ADMINISTRADOR)
+
+
+@transaction.atomic
+def mudar_prioridade(ticket, usuario, nova):
+    """RF17, RN09: muda a prioridade e recalcula o prazo a partir da abertura do ticket."""
+    if not ticket.aceita_resposta:
+        raise RegraDeNegocioError("Tickets resolvidos ou fechados não mudam de prioridade.")
+    if not pode_mudar_prioridade(usuario, ticket):
+        raise RegraDeNegocioError(motivo_para_nao_atuar(usuario, ticket))
+    if nova not in Ticket.Prioridade.values:
+        raise RegraDeNegocioError("Prioridade inválida.")
+    if nova == ticket.prioridade:
+        return ticket
+
+    registrar_historico(ticket, usuario, Historico.Campo.PRIORIDADE, ticket.prioridade, nova)
+    ticket.prioridade = nova
+    ticket.prazo = calcular_prazo(nova, ticket.aberto_em)
+    ticket.save()
+    return ticket

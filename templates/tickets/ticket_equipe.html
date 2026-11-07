@@ -67,6 +67,7 @@
         {% else %}
           <input type="hidden" name="situacao" value="{{ ticket.situacao }}">
         {% endif %}
+        {% include "includes/campo.html" with campo=gerenciar.prioridade %}
         <button class="botao botao-largo" type="submit">Salvar alterações</button>
         <p class="dica">Cada alteração fica registrada na conversa do ticket.</p>
       </form>
