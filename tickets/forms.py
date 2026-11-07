@@ -181,3 +181,16 @@ class CategoriaForm(forms.ModelForm):
         if any(existente.casefold() == nome.casefold() for existente in outras):
             raise forms.ValidationError("Já existe uma categoria com este nome.")
         return nome
+
+
+class AvaliacaoForm(forms.Form):
+    """Avaliação do atendimento pela cliente (RF16): nota de 1 a 5 e comentário opcional."""
+
+    nota = forms.TypedChoiceField(
+        label="Nota", coerce=int, choices=[(n, f"{n} de 5") for n in range(1, 6)], widget=forms.RadioSelect,
+        error_messages={"required": "Escolha de 1 a 5 estrelas."},
+    )
+    comentario = forms.CharField(
+        label="Comentário (opcional)", required=False, max_length=500,
+        widget=forms.Textarea(attrs={"rows": 3, "maxlength": 500}),
+    )
