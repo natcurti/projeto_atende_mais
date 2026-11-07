@@ -601,3 +601,56 @@ class CicloCompletoTests(AtendimentoTestCase):
         self.assertContains(resposta, "Carlos Lima marcou o ticket como resolvido")
         self.assertNotContains(resposta, "Enviar mensagem")
         self.assertEqual(ticket.historico.count(), 5)
+
+
+# ==========================================================
+# F5: administração das categorias (RF05, RN12)
+# ==========================================================
+
+class AdministracaoCategoriasTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.juliana = Usuario.objects.create_user("juliana@empresa.com", SENHA, nome="Juliana", perfil=Usuario.Perfil.ADMINISTRADOR)
+        cls.carlos = Usuario.objects.create_user("carlos@empresa.com", SENHA, nome="Carlos", perfil=Usuario.Perfil.ATENDENTE)
+        cls.maria = Usuario.objects.create_user("maria@exemplo.com", SENHA, nome="Maria", empresa="Souza ME")
+        cls.duvida = Categoria.objects.create(nome="Dúvida")
+
+    def setUp(self):
+        self.client.force_login(self.juliana)
+
+    def test_so_administrador(self):
+        self.client.force_login(self.carlos)
+        self.assertEqual(self.client.post(reverse("tickets:nova_categoria"), {"nome": "X"}).status_code, 403)
+        self.assertEqual(self.client.get(reverse("tickets:editar_categoria", args=[self.duvida.pk])).status_code, 403)
+        self.assertEqual(self.client.post(reverse("tickets:alterar_categoria", args=[self.duvida.pk])).status_code, 403)
+
+    def test_cria_categoria_que_ja_aparece_para_o_cliente(self):  # RF05
+        resposta = self.client.post(reverse("tickets:nova_categoria"), {"nome": "  Integrações   fiscais "}, follow=True)
+        self.assertContains(resposta, "Categoria Integrações fiscais criada")
+        self.client.force_login(self.maria)
+        self.assertContains(self.client.get(reverse("tickets:novo_ticket")), "Integrações fiscais")
+
+    def test_nome_repetido_com_outras_maiusculas_e_recusado(self):
+        resposta = self.client.post(reverse("tickets:nova_categoria"), {"nome": "DÚVIDA"}, follow=True)
+        self.assertContains(resposta, "Já existe uma categoria com este nome.")
+        self.assertEqual(Categoria.objects.count(), 1)
+
+    def test_renomear_muda_o_nome_nos_tickets_antigos(self):
+        ticket = Ticket.objects.create(cliente=self.maria, categoria=self.duvida, titulo="T", descricao="D")
+        self.client.post(reverse("tickets:editar_categoria", args=[self.duvida.pk]), {"nome": "Dúvidas gerais"})
+        self.client.force_login(self.maria)
+        self.assertContains(self.client.get(reverse("tickets:ticket_cliente", args=[ticket.pk])), "Dúvidas gerais")
+
+    def test_desativar_some_da_abertura_mas_fica_nos_tickets_antigos(self):  # RN12
+        ticket = Ticket.objects.create(cliente=self.maria, categoria=self.duvida, titulo="T", descricao="D")
+        self.client.post(reverse("tickets:alterar_categoria", args=[self.duvida.pk]))
+        self.duvida.refresh_from_db()
+        self.assertFalse(self.duvida.ativa)
+        self.client.force_login(self.maria)
+        opcoes = self.client.get(reverse("tickets:novo_ticket")).context["form"].fields["categoria"].queryset
+        self.assertNotIn(self.duvida, opcoes)
+        self.assertContains(self.client.get(reverse("tickets:ticket_cliente", args=[ticket.pk])), "Dúvida")
+        self.client.force_login(self.juliana)
+        self.client.post(reverse("tickets:alterar_categoria", args=[self.duvida.pk]))
+        self.duvida.refresh_from_db()
+        self.assertTrue(self.duvida.ativa)

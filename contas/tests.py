@@ -120,11 +120,17 @@ class EntrarSairTests(AcessoTestCase):
         self.assertContains(resposta, "E-mail ou senha incorretos")
         self.assertNotIn("_auth_user_id", self.client.session)
 
-    def test_usuario_desativado_nao_entra(self):
+    def test_usuario_desativado_nao_entra_e_ve_o_motivo(self):
         Usuario.objects.filter(pk=self.atendente.pk).update(is_active=False)  # RN12
         resposta = self.entrar("carlos@empresa.com")
-        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, "Este acesso foi desativado.")
         self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_desativado_com_senha_errada_nao_revela_nada(self):
+        Usuario.objects.filter(pk=self.atendente.pk).update(is_active=False)
+        resposta = self.entrar("carlos@empresa.com", "senha-errada")
+        self.assertContains(resposta, "E-mail ou senha incorretos")
+        self.assertNotContains(resposta, "desativado")
 
     def test_volta_para_a_pagina_pedida_antes_do_login(self):
         self.assertRedirects(self.entrar("carlos@empresa.com", next="/fila/"), "/fila/")
@@ -176,3 +182,121 @@ class PermissaoPorPerfilTests(AcessoTestCase):
         resposta = self.client.get(reverse("tickets:fila"))
         self.assertContains(resposta, 'href="/fila/"')
         self.assertNotContains(resposta, 'href="/meus-tickets/"')
+
+
+# ==========================================================
+# F5: administração da equipe (RF04, RN12)
+# ==========================================================
+
+class AdministracaoEquipeTests(AcessoTestCase):
+    def setUp(self):
+        self.client.force_login(self.admin)
+
+    def dados_pessoa(self, **mudancas):
+        dados = {"nome": "Beatriz Nunes", "email": "Beatriz@Empresa.com", "perfil": "atendente",
+                 "senha": "Suporte#Novo9", "senha_confirmacao": "Suporte#Novo9"}
+        dados.update(mudancas)
+        return dados
+
+    def test_so_administrador_acessa(self):  # RNF04
+        urls = [
+            reverse("contas:administracao"), reverse("contas:nova_pessoa"),
+            reverse("contas:editar_pessoa", args=[self.atendente.pk]),
+        ]
+        for usuario in (self.atendente, self.cliente):
+            self.client.force_login(usuario)
+            for url in urls:
+                self.assertEqual(self.client.get(url).status_code, 403, (usuario, url))
+            self.assertEqual(self.client.post(reverse("contas:alterar_acesso", args=[self.atendente.pk])).status_code, 403)
+        self.client.logout()
+        self.assertEqual(self.client.get(urls[0]).status_code, 302)
+
+    def test_menu_administracao_so_para_administrador(self):
+        self.assertContains(self.client.get(reverse("tickets:fila")), "Administração")
+        self.client.force_login(self.atendente)
+        self.assertNotContains(self.client.get(reverse("tickets:fila")), "Administração")
+
+    def test_cadastra_atendente_que_ja_consegue_entrar(self):  # RF04
+        resposta = self.client.post(reverse("contas:nova_pessoa"), self.dados_pessoa(), follow=True)
+        self.assertRedirects(resposta, reverse("contas:administracao"))
+        self.assertContains(resposta, "Beatriz Nunes agora faz parte da equipe")
+        nova = Usuario.objects.get(email="beatriz@empresa.com")
+        self.assertEqual((nova.perfil, nova.empresa), ("atendente", None))
+        self.client.logout()
+        self.assertRedirects(self.entrar("beatriz@empresa.com", "Suporte#Novo9"), reverse("tickets:fila"))
+
+    def test_cadastro_valida_email_senha_e_perfil(self):
+        r = self.client.post(reverse("contas:nova_pessoa"), self.dados_pessoa(email="CARLOS@empresa.com"))
+        self.assertContains(r, "Já existe uma conta com este e-mail.")
+        r = self.client.post(reverse("contas:nova_pessoa"), self.dados_pessoa(senha_confirmacao="Outra#Senha9"))
+        self.assertContains(r, "As senhas não são iguais.")
+        r = self.client.post(reverse("contas:nova_pessoa"), self.dados_pessoa(senha="", senha_confirmacao=""))
+        self.assertTrue(r.context["form"].has_error("senha"))
+        r = self.client.post(reverse("contas:nova_pessoa"), self.dados_pessoa(perfil="cliente"))
+        self.assertTrue(r.context["form"].has_error("perfil"))
+        self.assertFalse(Usuario.objects.filter(email="beatriz@empresa.com").exists())
+
+    def test_edita_dados_e_senha_em_branco_mantem_a_atual(self):
+        url = reverse("contas:editar_pessoa", args=[self.atendente.pk])
+        self.client.post(url, {"nome": "Carlos A. Lima", "email": "carlos@empresa.com", "perfil": "administrador"})
+        self.atendente.refresh_from_db()
+        self.assertEqual((self.atendente.nome, self.atendente.perfil), ("Carlos A. Lima", "administrador"))
+        self.assertTrue(self.atendente.check_password(SENHA))
+
+    def test_edita_a_senha(self):
+        url = reverse("contas:editar_pessoa", args=[self.atendente.pk])
+        self.client.post(url, {"nome": "Carlos", "email": "carlos@empresa.com", "perfil": "atendente",
+                               "senha": "Trocada#2026x", "senha_confirmacao": "Trocada#2026x"})
+        self.atendente.refresh_from_db()
+        self.assertTrue(self.atendente.check_password("Trocada#2026x"))
+
+    def test_administrador_nao_muda_o_proprio_perfil(self):
+        url = reverse("contas:editar_pessoa", args=[self.admin.pk])
+        self.client.post(url, {"nome": "Juliana", "email": "juliana@empresa.com", "perfil": "atendente"})
+        self.admin.refresh_from_db()
+        self.assertEqual(self.admin.perfil, "administrador")
+
+    def test_cliente_nao_e_gerenciado_aqui(self):
+        self.assertEqual(self.client.get(reverse("contas:editar_pessoa", args=[self.cliente.pk])).status_code, 404)
+        self.assertEqual(self.client.post(reverse("contas:alterar_acesso", args=[self.cliente.pk])).status_code, 404)
+
+    def test_desativar_impede_o_login_e_reativar_devolve(self):  # RN12
+        url = reverse("contas:alterar_acesso", args=[self.atendente.pk])
+        resposta = self.client.post(url, follow=True)
+        self.assertContains(resposta, "O acesso de Carlos foi desativado")
+        self.atendente.refresh_from_db()
+        self.assertFalse(self.atendente.is_active)
+        self.client.logout()
+        self.assertEqual(self.entrar("carlos@empresa.com").status_code, 200)  # não entra
+        self.client.force_login(self.admin)
+        self.client.post(url)
+        self.atendente.refresh_from_db()
+        self.assertTrue(self.atendente.is_active)
+
+    def test_desativar_derruba_a_sessao_aberta(self):
+        outro = self.client_class()
+        outro.force_login(self.atendente)
+        self.client.post(reverse("contas:alterar_acesso", args=[self.atendente.pk]))
+        self.assertEqual(outro.get(reverse("tickets:fila")).status_code, 302)  # volta para o login
+
+    def test_nao_desativa_a_si_mesmo(self):
+        resposta = self.client.post(reverse("contas:alterar_acesso", args=[self.admin.pk]), follow=True)
+        self.assertContains(resposta, "Você não pode desativar o seu próprio acesso.")
+        self.admin.refresh_from_db()
+        self.assertTrue(self.admin.is_active)
+
+    def test_avisa_tickets_em_aberto_e_nome_continua_nos_tickets(self):  # RN12
+        from tickets.models import Categoria, Ticket
+
+        categoria = Categoria.objects.create(nome="Dúvida")
+        ticket = Ticket.objects.create(
+            cliente=self.cliente, categoria=categoria, titulo="T", descricao="D",
+            situacao="em_atendimento", atendente=self.atendente,
+        )
+        resposta = self.client.post(reverse("contas:alterar_acesso", args=[self.atendente.pk]), follow=True)
+        self.assertContains(resposta, "Carlos ainda tem 1 ticket em aberto")
+        detalhe = self.client.get(reverse("tickets:ticket_equipe", args=[ticket.pk]))
+        self.assertContains(detalhe, "Carlos")
+
+    def test_alterar_acesso_so_por_post(self):
+        self.assertEqual(self.client.get(reverse("contas:alterar_acesso", args=[self.atendente.pk])).status_code, 405)
