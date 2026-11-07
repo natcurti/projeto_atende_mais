@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 
 from contas.models import Usuario
 
@@ -36,6 +37,37 @@ class RespostaForm(forms.Form):
         widget=forms.Textarea(attrs={"rows": 4, "placeholder": "Escreva sua mensagem"}),
         error_messages={"required": "Escreva a mensagem antes de enviar."},
     )
+
+
+class MensagemEquipeForm(RespostaForm):
+    """
+    Mensagem da equipe: ao cliente (RF12) ou nota interna (RF13).
+    Quem não pode atuar no ticket (RN05) só pode escrever nota interna.
+    """
+
+    CLIENTE, INTERNA = "cliente", "interna"
+
+    tipo = forms.ChoiceField(
+        label="Tipo de mensagem", required=False,
+        choices=[(CLIENTE, "Mensagem ao cliente"), (INTERNA, "Nota interna")],
+        initial=CLIENTE, widget=forms.RadioSelect,
+    )
+
+    def __init__(self, *args, pode_responder_cliente=True, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["texto"].label = "Mensagem"
+        self.fields["texto"].widget.attrs["placeholder"] = "Escreva a resposta ou a nota"
+        if not pode_responder_cliente:
+            self.fields["tipo"].choices = [(self.INTERNA, "Nota interna")]
+            self.fields["tipo"].initial = self.INTERNA
+
+    def clean_tipo(self):
+        # Sem escolha, vale a primeira opção disponível (mensagem ao cliente, ou nota para quem só pode anotar).
+        return self.cleaned_data["tipo"] or self.fields["tipo"].choices[0][0]
+
+    @property
+    def interna(self):
+        return self.cleaned_data.get("tipo") == self.INTERNA
 
 
 class FiltroFilaForm(forms.Form):
@@ -87,11 +119,19 @@ class FiltroFilaForm(forms.Form):
 
 class GerenciarTicketForm(forms.Form):
     """
-    Painel "Gerenciar ticket" (RF10, RF11).
-    A situação só oferece as mudanças permitidas agora; o atendente só aparece para administradores.
+    Painel "Gerenciar ticket" (RF10, RF11, RF17).
+    A situação só oferece as mudanças permitidas agora; o atendente só aparece para administradores;
+    a prioridade mostra o prazo de cada opção (RN09).
     """
 
     situacao = forms.ChoiceField(label="Situação")
+    prioridade = forms.ChoiceField(
+        label="Prioridade", required=False,
+        choices=[
+            ("urgente", "Urgente (4 horas)"), ("alta", "Alta (1 dia)"),
+            ("media", "Média (3 dias)"), ("baixa", "Baixa (5 dias)"),
+        ],
+    )
     atendente = forms.ModelChoiceField(label="Atendente", queryset=Usuario.objects.none(), empty_label=None)
 
     def __init__(self, *args, ticket, usuario, **kwargs):
@@ -102,6 +142,11 @@ class GerenciarTicketForm(forms.Form):
             (atual.value, atual.label), *[(s.value, s.label) for s in situacoes_possiveis(ticket)]
         ]
         self.fields["situacao"].initial = atual.value
+        self.fields["prioridade"].initial = ticket.prioridade
+        self.fields["prioridade"].help_text = (
+            f"Prazo atual: {timezone.localtime(ticket.prazo):%d/%m, %H:%M}. "
+            "Muda junto com a prioridade, contado a partir da abertura."
+        )
 
         if usuario.perfil == Usuario.Perfil.ADMINISTRADOR:
             self.fields["atendente"].queryset = Usuario.objects.filter(
@@ -113,6 +158,10 @@ class GerenciarTicketForm(forms.Form):
                 self.fields["atendente"].empty_label = "Ninguém ainda"
         else:
             del self.fields["atendente"]
+
+    def clean_prioridade(self):
+        # Sem prioridade enviada, vale a atual (nada muda).
+        return self.cleaned_data["prioridade"] or self.ticket.prioridade
 
 
 class CategoriaForm(forms.ModelForm):
@@ -132,3 +181,16 @@ class CategoriaForm(forms.ModelForm):
         if any(existente.casefold() == nome.casefold() for existente in outras):
             raise forms.ValidationError("Já existe uma categoria com este nome.")
         return nome
+
+
+class AvaliacaoForm(forms.Form):
+    """Avaliação do atendimento pela cliente (RF16): nota de 1 a 5 e comentário opcional."""
+
+    nota = forms.TypedChoiceField(
+        label="Nota", coerce=int, choices=[(n, f"{n} de 5") for n in range(1, 6)], widget=forms.RadioSelect,
+        error_messages={"required": "Escolha de 1 a 5 estrelas."},
+    )
+    comentario = forms.CharField(
+        label="Comentário (opcional)", required=False, max_length=500,
+        widget=forms.Textarea(attrs={"rows": 3, "maxlength": 500}),
+    )

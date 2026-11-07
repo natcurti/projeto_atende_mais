@@ -12,7 +12,7 @@ from django.db import transaction
 from django.db.models import BooleanField, Case, Count, Q, Value, When
 from django.utils import timezone
 
-from .models import Historico, Mensagem, Ticket
+from .models import Avaliacao, Historico, Mensagem, Ticket
 
 # Situações em que o ticket ainda precisa da equipe.
 SITUACOES_EM_ABERTO = (
@@ -67,6 +67,7 @@ def abrir_ticket(cliente, titulo, descricao, categoria):
 def responder(ticket, autor, texto, interna=False):
     """
     RF12: adiciona uma mensagem à conversa do ticket.
+    RF13: com interna=True, é uma nota da equipe que o cliente nunca vê (RN08).
     RN06: se o cliente responde um ticket Aguardando cliente, ele volta para Em atendimento.
     """
     if not ticket.aceita_resposta:
@@ -75,10 +76,15 @@ def responder(ticket, autor, texto, interna=False):
         raise RegraDeNegocioError("Clientes só respondem os próprios tickets.")
     if autor.eh_cliente and interna:
         raise RegraDeNegocioError("Clientes não escrevem notas internas.")
-    if autor.eh_equipe and not pode_atuar(autor, ticket):
+    # RN05 vale para o que o cliente vê. Uma nota interna não altera o ticket,
+    # então qualquer pessoa da equipe pode deixar uma, mesmo em ticket de outra pessoa.
+    if autor.eh_equipe and not interna and not pode_atuar(autor, ticket):
         raise RegraDeNegocioError(motivo_para_nao_atuar(autor, ticket))
 
     mensagem = Mensagem.objects.create(ticket=ticket, autor=autor, texto=texto.strip(), interna=interna)
+    if interna:
+        # Não atualiza "atualizado_em": o cliente não pode perceber movimento que não consegue ver.
+        return mensagem
 
     if autor.eh_cliente and ticket.situacao == Ticket.Situacao.AGUARDANDO_CLIENTE:
         registrar_historico(
@@ -273,3 +279,53 @@ def contadores_da_fila():
         aguardando_cliente=Count("id", filter=Q(situacao=Ticket.Situacao.AGUARDANDO_CLIENTE)),
         atrasados=Count("id", filter=_atrasado_agora()),
     )
+
+
+def pode_mudar_prioridade(usuario, ticket):
+    """RF17: o responsável ou um administrador; o administrador também tria tickets ainda abertos."""
+    if not ticket.aceita_resposta:
+        return False
+    return pode_atuar(usuario, ticket) or (usuario.eh_equipe and usuario.perfil == usuario.Perfil.ADMINISTRADOR)
+
+
+@transaction.atomic
+def mudar_prioridade(ticket, usuario, nova):
+    """RF17, RN09: muda a prioridade e recalcula o prazo a partir da abertura do ticket."""
+    if not ticket.aceita_resposta:
+        raise RegraDeNegocioError("Tickets resolvidos ou fechados não mudam de prioridade.")
+    if not pode_mudar_prioridade(usuario, ticket):
+        raise RegraDeNegocioError(motivo_para_nao_atuar(usuario, ticket))
+    if nova not in Ticket.Prioridade.values:
+        raise RegraDeNegocioError("Prioridade inválida.")
+    if nova == ticket.prioridade:
+        return ticket
+
+    registrar_historico(ticket, usuario, Historico.Campo.PRIORIDADE, ticket.prioridade, nova)
+    ticket.prioridade = nova
+    ticket.prazo = calcular_prazo(nova, ticket.aberto_em)
+    ticket.save()
+    return ticket
+
+
+# ---------- Avaliação do atendimento (RF16) ----------
+
+def pode_avaliar(usuario, ticket):
+    """RN11: só a cliente dona do ticket, depois de resolvido, e uma única vez."""
+    return (
+        usuario.pk == ticket.cliente_id
+        and ticket.situacao in (Ticket.Situacao.RESOLVIDO, Ticket.Situacao.FECHADO)
+        and not Avaliacao.objects.filter(ticket=ticket).exists()
+    )
+
+
+def avaliar(ticket, cliente, nota, comentario=""):
+    """RF16, RN11: a cliente dá uma nota de 1 a 5 e, se quiser, um comentário."""
+    if cliente.pk != ticket.cliente_id:
+        raise RegraDeNegocioError("Só quem abriu o ticket pode avaliar o atendimento.")
+    if ticket.situacao not in (Ticket.Situacao.RESOLVIDO, Ticket.Situacao.FECHADO):
+        raise RegraDeNegocioError("O atendimento só pode ser avaliado depois que o ticket for resolvido.")
+    if Avaliacao.objects.filter(ticket=ticket).exists():
+        raise RegraDeNegocioError("Este atendimento já foi avaliado. A avaliação só pode ser feita uma vez.")
+    if nota not in range(1, 6):
+        raise RegraDeNegocioError("Escolha uma nota de 1 a 5.")
+    return Avaliacao.objects.create(ticket=ticket, nota=nota, comentario=(comentario or "").strip() or None)

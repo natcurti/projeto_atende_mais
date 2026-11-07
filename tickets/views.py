@@ -1,13 +1,17 @@
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from contas.permissoes import somente_administrador, somente_cliente, somente_equipe
 
 from . import services
-from .forms import CategoriaForm, FiltroFilaForm, GerenciarTicketForm, NovoTicketForm, RespostaForm
-from .models import Categoria, Ticket
+from .forms import (
+    AvaliacaoForm, CategoriaForm, FiltroFilaForm, GerenciarTicketForm,
+    MensagemEquipeForm, NovoTicketForm, RespostaForm,
+)
+from .models import Avaliacao, Categoria, Ticket
 
 
 # ---------- Cliente ----------
@@ -76,8 +80,28 @@ def ticket_cliente(request, numero):
         "ticket": ticket,
         "conversa": services.linha_do_tempo(ticket, para_equipe=False),
         "form": form,
+        "avaliacao": Avaliacao.objects.filter(ticket=ticket).first(),
+        "form_avaliacao": AvaliacaoForm() if services.pode_avaliar(request.user, ticket) else None,
     }
     return render(request, "tickets/ticket_cliente.html", contexto)
+
+
+@somente_cliente
+@require_POST
+def avaliar_ticket(request, numero):
+    """RF16, RN11: a cliente avalia o atendimento de um ticket resolvido, uma única vez."""
+    ticket = get_object_or_404(Ticket, pk=numero, cliente=request.user)
+    form = AvaliacaoForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, " ".join(e for erros in form.errors.values() for e in erros))
+        return redirect("tickets:ticket_cliente", numero=ticket.pk)
+    try:
+        services.avaliar(ticket, request.user, form.cleaned_data["nota"], form.cleaned_data["comentario"])
+    except services.RegraDeNegocioError as erro:
+        messages.error(request, str(erro))
+    else:
+        messages.success(request, "Obrigado pela avaliação. Ela ajuda a equipe a melhorar o atendimento.")
+    return redirect("tickets:ticket_cliente", numero=ticket.pk)
 
 
 # ---------- Equipe ----------
@@ -119,19 +143,22 @@ def _ticket_da_equipe(numero):
 def ticket_equipe(request, numero):
     """
     Ticket na visão da equipe (RF09): conversa completa, inclusive notas internas,
-    resposta ao cliente (RF12) e o painel "Gerenciar ticket" (RF10, RF11).
+    resposta ao cliente (RF12), nota interna (RF13) e o painel "Gerenciar ticket" (RF10, RF11).
     """
     ticket = _ticket_da_equipe(numero)
     pode_atuar = services.pode_atuar(request.user, ticket)
-    form = RespostaForm(request.POST or None)
+    form = MensagemEquipeForm(request.POST or None, pode_responder_cliente=pode_atuar)
 
     if request.method == "POST" and form.is_valid():
         try:
-            services.responder(ticket, request.user, form.cleaned_data["texto"])
+            services.responder(ticket, request.user, form.cleaned_data["texto"], interna=form.interna)
         except services.RegraDeNegocioError as erro:
             messages.error(request, str(erro))
         else:
-            messages.success(request, "Mensagem enviada ao cliente.")
+            if form.interna:
+                messages.success(request, "Nota interna salva. O cliente não vê esta nota.")
+            else:
+                messages.success(request, "Mensagem enviada ao cliente.")
         return redirect("tickets:ticket_equipe", numero=ticket.pk)
 
     eh_admin = request.user.perfil == request.user.Perfil.ADMINISTRADOR
@@ -164,7 +191,10 @@ def assumir_ticket(request, numero):
 @somente_equipe
 @require_POST
 def gerenciar_ticket(request, numero):
-    """Painel Gerenciar ticket: o administrador troca o atendente (RF10); o responsável ou o administrador muda a situação (RF11)."""
+    """
+    Painel Gerenciar ticket: o administrador troca o atendente (RF10); o responsável ou o administrador
+    muda a prioridade (RF17) e a situação (RF11).
+    """
     ticket = _ticket_da_equipe(numero)
     form = GerenciarTicketForm(request.POST, ticket=ticket, usuario=request.user)
     if not form.is_valid():
@@ -178,6 +208,13 @@ def gerenciar_ticket(request, numero):
         if novo_atendente and novo_atendente.pk != ticket.atendente_id:
             services.atribuir(ticket, request.user, novo_atendente)
             feito.append(f"ticket passado para {novo_atendente.nome}")
+        nova_prioridade = form.cleaned_data["prioridade"]
+        if nova_prioridade != ticket.prioridade:  # antes da situação: ticket resolvido não muda de prioridade
+            services.mudar_prioridade(ticket, request.user, nova_prioridade)
+            feito.append(
+                f"prioridade alterada para {ticket.get_prioridade_display()}, "
+                f"com novo prazo em {timezone.localtime(ticket.prazo):%d/%m, %H:%M}"
+            )
         nova = form.cleaned_data["situacao"]
         if nova != situacao_original:
             services.mudar_situacao(ticket, request.user, nova)

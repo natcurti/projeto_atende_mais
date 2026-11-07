@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     # Apps do atende+
     "contas",
     "tickets",
+    "painel",
 ]
 
 MIDDLEWARE = [

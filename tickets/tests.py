@@ -97,10 +97,12 @@ class DadosExemploTests(TestCase):
     def test_comando_carrega_os_dados_do_prototipo(self):
         call_command("carregar_dados_exemplo", stdout=StringIO())
         self.assertEqual(Usuario.objects.count(), 8)
-        self.assertEqual(Ticket.objects.count(), 7)
+        self.assertEqual(Ticket.objects.count(), 52)  # 7 do protótipo + 45 de histórico para o painel
         self.assertEqual(Ticket.objects.order_by("id").first().pk, 1000)
-        urgente = Ticket.objects.get(prioridade="urgente")
-        self.assertTrue(urgente.atrasado)
+        self.assertTrue(Ticket.objects.get(pk=1006).atrasado)  # o urgente da demonstração
+        historico = Ticket.objects.filter(pk__gt=1006)
+        self.assertFalse(historico.exclude(situacao__in=["resolvido", "fechado"]).exists())
+        self.assertFalse(historico.filter(cliente__email="maria@souzacomercio.com.br").exists())
 
 
 class PaginaInicialTests(TestCase):
@@ -514,18 +516,18 @@ class TelaDeAtendimentoTests(AtendimentoTestCase):
         self.assertContains(resposta, "Verificar certificado.")
         self.assertContains(resposta, "Nota interna")
 
-    def test_ticket_aberto_mostra_assumir_e_nao_o_campo_de_resposta(self):
+    def test_ticket_aberto_mostra_assumir_e_so_permite_nota_interna(self):
         self.client.force_login(self.carlos)
         resposta = self.client.get(self.url())
         self.assertContains(resposta, "Assumir ticket")
-        self.assertNotContains(resposta, "Enviar mensagem")
+        self.assertEqual(resposta.context["form"].fields["tipo"].choices, [("interna", "Nota interna")])
 
     def test_assumir_pela_fila_leva_para_o_ticket(self):
         self.client.force_login(self.carlos)
         resposta = self.client.post(self.url("tickets:assumir"), follow=True)
         self.assertRedirects(resposta, self.url())
         self.assertContains(resposta, f"Ticket {self.aberto.numero} assumido")
-        self.assertContains(resposta, "Enviar mensagem")
+        self.assertContains(resposta, "Mensagem ao cliente")
 
     def test_assumir_so_por_post(self):
         self.client.force_login(self.carlos)
@@ -654,3 +656,175 @@ class AdministracaoCategoriasTests(TestCase):
         self.client.post(reverse("tickets:alterar_categoria", args=[self.duvida.pk]))
         self.duvida.refresh_from_db()
         self.assertTrue(self.duvida.ativa)
+
+
+# ==========================================================
+# Evolução (v0.2.0) — E1: notas internas (RF13)
+# ==========================================================
+
+class NotasInternasTests(AtendimentoTestCase):
+    def url(self):
+        return reverse("tickets:ticket_equipe", args=[self.aberto.pk])
+
+    def test_responsavel_escreve_nota_e_o_cliente_nao_ve(self):  # RF13, RN08
+        self.com_carlos()
+        self.client.force_login(self.carlos)
+        resposta = self.client.post(self.url(), {"tipo": "interna", "texto": "Cliente usa a versão antiga."}, follow=True)
+        self.assertContains(resposta, "Nota interna salva.")
+        nota = self.aberto.mensagens.get()
+        self.assertTrue(nota.interna)
+        self.client.force_login(self.maria)
+        cliente = self.client.get(reverse("tickets:ticket_cliente", args=[self.aberto.pk]))
+        self.assertNotContains(cliente, "Cliente usa a versão antiga.")
+
+    def test_nota_nao_muda_a_ultima_atualizacao_vista_pelo_cliente(self):
+        self.com_carlos()
+        antes = Ticket.objects.get(pk=self.aberto.pk).atualizado_em
+        services.responder(self.aberto, self.carlos, "Anotação", interna=True)
+        self.assertEqual(Ticket.objects.get(pk=self.aberto.pk).atualizado_em, antes)
+
+    def test_outro_atendente_deixa_nota_mas_nao_responde_ao_cliente(self):  # RN05
+        self.com_carlos()
+        services.responder(self.aberto, self.ana, "Já vi esse erro antes, fala comigo.", interna=True)
+        with self.assertRaises(services.RegraDeNegocioError):
+            services.responder(self.aberto, self.ana, "Oi, Maria", interna=False)
+        self.client.force_login(self.ana)
+        self.client.post(self.url(), {"tipo": "cliente", "texto": "Tentando responder ao cliente"})
+        self.assertFalse(self.aberto.mensagens.filter(texto="Tentando responder ao cliente").exists())
+
+    def test_ticket_aberto_aceita_nota_antes_de_ser_assumido(self):
+        self.client.force_login(self.ana)
+        self.client.post(self.url(), {"texto": "Parece urgente, alguém pega?"})  # sem tipo: só pode ser nota
+        nota = self.aberto.mensagens.get()
+        self.assertTrue(nota.interna)
+        self.aberto.refresh_from_db()
+        self.assertEqual(self.aberto.situacao, "aberto")
+
+    def test_tipo_padrao_do_responsavel_e_mensagem_ao_cliente(self):
+        self.com_carlos()
+        self.client.force_login(self.carlos)
+        self.client.post(self.url(), {"texto": "Olá, Maria!"})
+        self.assertFalse(self.aberto.mensagens.get().interna)
+
+
+# ==========================================================
+# Evolução (v0.2.0) — E2: mudar a prioridade (RF17, RN09)
+# ==========================================================
+
+class PrioridadeTests(AtendimentoTestCase):
+    def gerenciar(self, **dados):
+        return self.client.post(reverse("tickets:gerenciar", args=[self.aberto.pk]), dados, follow=True)
+
+    def test_responsavel_muda_a_prioridade_e_o_prazo_e_recalculado(self):  # RF17, RN09
+        self.com_carlos()
+        services.mudar_prioridade(self.aberto, self.carlos, "urgente")
+        self.aberto.refresh_from_db()
+        self.assertEqual(self.aberto.prioridade, "urgente")
+        self.assertEqual(self.aberto.prazo, self.aberto.aberto_em + timedelta(hours=4))
+        evento = self.aberto.historico.get(campo="prioridade")
+        self.assertEqual(evento.descricao, "Prioridade alterada de Média para Urgente")
+
+    def test_mudar_para_urgente_um_ticket_antigo_o_deixa_atrasado(self):  # RN10
+        Ticket.objects.filter(pk=self.aberto.pk).update(aberto_em=timezone.now() - timedelta(hours=6))
+        self.aberto.refresh_from_db()
+        services.mudar_prioridade(self.aberto, self.juliana, "urgente")
+        self.assertTrue(self.aberto.atrasado)
+
+    def test_outro_atendente_nao_muda(self):  # RN05
+        self.com_carlos()
+        with self.assertRaises(services.RegraDeNegocioError):
+            services.mudar_prioridade(self.aberto, self.ana, "alta")
+
+    def test_administrador_tria_ticket_ainda_aberto(self):
+        services.mudar_prioridade(self.aberto, self.juliana, "alta")
+        self.aberto.refresh_from_db()
+        self.assertEqual((self.aberto.prioridade, self.aberto.situacao), ("alta", "aberto"))
+
+    def test_atendente_nao_tria_ticket_aberto_sem_assumir(self):
+        with self.assertRaisesMessage(services.RegraDeNegocioError, "Assuma o ticket"):
+            services.mudar_prioridade(self.aberto, self.carlos, "alta")
+
+    def test_ticket_resolvido_nao_muda_de_prioridade(self):
+        self.com_carlos()
+        services.mudar_situacao(self.aberto, self.carlos, "resolvido")
+        with self.assertRaises(services.RegraDeNegocioError):
+            services.mudar_prioridade(self.aberto, self.carlos, "baixa")
+
+    def test_pelo_painel_mostra_o_novo_prazo(self):
+        self.com_carlos()
+        self.client.force_login(self.carlos)
+        resposta = self.gerenciar(situacao="em_atendimento", prioridade="baixa")
+        self.assertContains(resposta, "prioridade alterada para Baixa, com novo prazo em")
+        self.assertContains(resposta, "Prioridade alterada de Média para Baixa")
+
+    def test_pelo_painel_muda_prioridade_e_resolve_juntos(self):
+        self.com_carlos()
+        self.client.force_login(self.carlos)
+        self.gerenciar(situacao="resolvido", prioridade="alta")
+        self.aberto.refresh_from_db()
+        self.assertEqual((self.aberto.prioridade, self.aberto.situacao), ("alta", "resolvido"))
+
+
+# ==========================================================
+# Evolução (v0.2.0) — E3: avaliação do atendimento (RF16, RN11)
+# ==========================================================
+
+class AvaliacaoTests(AtendimentoTestCase):
+    def setUp(self):
+        super().setUp()
+        services.assumir(self.aberto, self.carlos)
+        services.mudar_situacao(self.aberto, self.carlos, "resolvido")
+        self.url_ticket = reverse("tickets:ticket_cliente", args=[self.aberto.pk])
+        self.url_avaliar = reverse("tickets:avaliar", args=[self.aberto.pk])
+
+    def test_cliente_avalia_ticket_resolvido(self):  # RF16
+        self.client.force_login(self.maria)
+        self.assertContains(self.client.get(self.url_ticket), "Como foi o atendimento?")
+        resposta = self.client.post(self.url_avaliar, {"nota": "4", "comentario": "Rápido e educado."}, follow=True)
+        self.assertContains(resposta, "Obrigado pela avaliação.")
+        self.assertContains(resposta, "Sua avaliação")
+        self.assertContains(resposta, "★★★★☆")
+        avaliacao = Avaliacao.objects.get(ticket=self.aberto)
+        self.assertEqual((avaliacao.nota, avaliacao.comentario), (4, "Rápido e educado."))
+
+    def test_so_uma_vez(self):  # RN11
+        self.client.force_login(self.maria)
+        self.client.post(self.url_avaliar, {"nota": "5"})
+        resposta = self.client.post(self.url_avaliar, {"nota": "1"}, follow=True)
+        self.assertContains(resposta, "já foi avaliado")
+        self.assertEqual(Avaliacao.objects.get(ticket=self.aberto).nota, 5)
+        self.assertNotContains(resposta, "Como foi o atendimento?")
+
+    def test_comentario_e_opcional_e_nota_obrigatoria(self):
+        self.client.force_login(self.maria)
+        resposta = self.client.post(self.url_avaliar, {"comentario": "Sem nota"}, follow=True)
+        self.assertContains(resposta, "Escolha de 1 a 5 estrelas.")
+        self.client.post(self.url_avaliar, {"nota": "3"})
+        self.assertIsNone(Avaliacao.objects.get(ticket=self.aberto).comentario)
+
+    def test_nota_fora_de_1_a_5_e_recusada(self):
+        self.client.force_login(self.maria)
+        self.client.post(self.url_avaliar, {"nota": "6"})
+        self.assertFalse(Avaliacao.objects.filter(ticket=self.aberto).exists())
+
+    def test_ticket_ainda_em_atendimento_nao_e_avaliado(self):
+        outro = Ticket.objects.create(cliente=self.maria, categoria=self.erro, titulo="Outro", descricao="D")
+        with self.assertRaisesMessage(services.RegraDeNegocioError, "depois que o ticket for resolvido"):
+            services.avaliar(outro, self.maria, 5)
+        self.client.force_login(self.maria)
+        self.assertNotContains(self.client.get(reverse("tickets:ticket_cliente", args=[outro.pk])), "Como foi o atendimento?")
+
+    def test_outra_cliente_e_equipe_nao_avaliam(self):
+        fernanda = Usuario.objects.create_user("fernanda@exemplo.com", SENHA, nome="Fernanda", empresa="Loja")
+        self.client.force_login(fernanda)
+        self.assertEqual(self.client.post(self.url_avaliar, {"nota": "1"}).status_code, 404)
+        self.client.force_login(self.carlos)
+        self.assertEqual(self.client.post(self.url_avaliar, {"nota": "5"}).status_code, 403)
+        self.assertFalse(Avaliacao.objects.filter(ticket=self.aberto).exists())
+
+    def test_equipe_ve_a_avaliacao(self):
+        services.avaliar(self.aberto, self.maria, 2, "Demorou.")
+        self.client.force_login(self.carlos)
+        resposta = self.client.get(reverse("tickets:ticket_equipe", args=[self.aberto.pk]))
+        self.assertContains(resposta, "★★☆☆☆")
+        self.assertContains(resposta, "Demorou.")

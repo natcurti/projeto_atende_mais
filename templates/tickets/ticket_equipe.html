@@ -24,26 +24,35 @@
       <div class="painel responder">
         <p>Este ticket está {{ ticket.get_situacao_display|lower }}{% if ticket.resolvido_em %} desde {{ ticket.resolvido_em|date:"d/m/Y, H:i" }}{% endif %} e não recebe novas mensagens.</p>
       </div>
-    {% elif pode_atuar %}
+    {% else %}
+      {% if not pode_atuar %}
+        {% if ticket.situacao == "aberto" %}
+          <div class="painel responder destaque-acao">
+            <p>Este ticket ainda não tem atendente. Assuma o ticket para responder ao cliente.</p>
+            <form method="post" action="{% url 'tickets:assumir' ticket.pk %}">
+              {% csrf_token %}
+              <button class="botao botao-principal" type="submit">Assumir ticket</button>
+            </form>
+          </div>
+        {% else %}
+          <div class="painel responder"><p>{{ motivo }} Você ainda pode deixar uma nota interna para a equipe.</p></div>
+        {% endif %}
+      {% endif %}
+
       <form class="formulario responder" method="post" novalidate>
         {% csrf_token %}
+        <fieldset class="alternador-tipo">
+          <legend class="sr-only">Tipo de mensagem</legend>
+          {% for opcao in form.tipo %}
+            <label class="opcao-tipo">{{ opcao.tag }} <span>{{ opcao.choice_label }}</span></label>
+          {% endfor %}
+        </fieldset>
         {% include "includes/campo.html" with campo=form.texto %}
+        <p class="dica dica-nota">Nota interna: só a equipe vê. O cliente não é avisado.</p>
         <div class="acoes-formulario">
-          <button class="botao botao-principal" type="submit">Enviar mensagem</button>
+          <button class="botao botao-principal" type="submit">Enviar</button>
         </div>
       </form>
-    {% elif ticket.situacao == "aberto" %}
-      <div class="painel responder destaque-acao">
-        <p>Este ticket ainda não tem atendente. Assuma o ticket para responder ao cliente.</p>
-        <form method="post" action="{% url 'tickets:assumir' ticket.pk %}">
-          {% csrf_token %}
-          <button class="botao botao-principal" type="submit">Assumir ticket</button>
-        </form>
-      </div>
-    {% else %}
-      <div class="painel responder">
-        <p>{{ motivo }}</p>
-      </div>
     {% endif %}
   </section>
 
@@ -58,6 +67,7 @@
         {% else %}
           <input type="hidden" name="situacao" value="{{ ticket.situacao }}">
         {% endif %}
+        {% include "includes/campo.html" with campo=gerenciar.prioridade %}
         <button class="botao botao-largo" type="submit">Salvar alterações</button>
         <p class="dica">Cada alteração fica registrada na conversa do ticket.</p>
       </form>
@@ -76,6 +86,10 @@
           <dt>Prazo</dt><dd>{{ ticket.prazo|date:"d/m/Y, H:i" }}</dd>
         {% endif %}
         <dt>E-mail</dt><dd class="quebra">{{ ticket.cliente.email }}</dd>
+        {% if ticket.avaliacao %}
+          <dt>Avaliação</dt>
+          <dd><span class="estrelas-nota" aria-label="Nota {{ ticket.avaliacao.nota }} de 5"><span aria-hidden="true">{{ ticket.avaliacao.nota|estrelas }}</span></span>{% if ticket.avaliacao.comentario %}<br><span class="dica">"{{ ticket.avaliacao.comentario }}"</span>{% endif %}</dd>
+        {% endif %}
       </dl>
     </div>
   </aside>

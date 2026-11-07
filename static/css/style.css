@@ -568,3 +568,87 @@ tr.inativo td, li.inativo > span:first-child { color: var(--texto-suave); }
 @media (max-width: 640px) {
   .tabela-responsiva .col-acoes { order: 5; flex-basis: 100%; }
 }
+
+/* ---------- Mensagem ao cliente ou nota interna (RF13) ---------- */
+.alternador-tipo {
+  display: inline-flex; flex-wrap: wrap; margin: 0; padding: 0; border: 2px solid var(--petroleo);
+  border-radius: var(--raio); overflow: hidden; width: max-content; max-width: 100%;
+}
+.opcao-tipo { position: relative; display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; font-weight: 700; color: var(--petroleo); background: var(--superficie); cursor: pointer; }
+.opcao-tipo input { position: absolute; opacity: 0; pointer-events: none; }
+.opcao-tipo:has(input:checked) { background: var(--petroleo); color: #fff; }
+.opcao-tipo:has(input:focus-visible) { outline: 3px solid var(--sinal); outline-offset: -3px; }
+.dica-nota { display: none; }
+.responder:has(input[value="interna"]:checked) .dica-nota { display: block; font-weight: 700; color: #6B5100; }
+.responder:has(input[value="interna"]:checked) textarea { background: var(--sinal-claro); border-color: #C99A00; }
+
+/* ---------- Avaliação com estrelas (RF16) ---------- */
+.estrelas-avaliacao { border: 0; margin: 0; padding: 0; }
+.estrelas-avaliacao legend { font-size: 0.875rem; color: var(--texto-suave); margin-bottom: 8px; padding: 0; }
+/* Em ordem invertida no HTML (5 a 1) e mostradas de 1 a 5: assim a estrela escolhida
+   e as anteriores acendem juntas com o seletor "~". */
+.estrelas-grupo { display: inline-flex; flex-direction: row-reverse; gap: 4px; }
+.estrelas-grupo input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.estrelas-grupo label {
+  display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+  font-size: 1.6rem; line-height: 1; color: #8B9AA0; cursor: pointer;
+  border: 1px solid var(--borda); border-radius: var(--raio); background: var(--superficie);
+}
+.estrelas-grupo input:checked ~ label,
+.estrelas-grupo label:hover, .estrelas-grupo label:hover ~ label { color: #B57F00; border-color: #E3C35A; background: var(--sinal-claro); }
+.estrelas-grupo input:focus-visible + label { outline: 3px solid var(--petroleo); outline-offset: 2px; }
+.estrelas-nota { color: #8C6400; font-size: 1.15rem; }
+.estrelas-nota span[aria-hidden] { color: #B57F00; letter-spacing: 2px; margin-right: 6px; }
+
+/* ---------- Painel de indicadores (RF18) ---------- */
+.seletor-periodo { display: inline-flex; gap: 0; border: 2px solid var(--petroleo); border-radius: var(--raio); overflow: hidden; }
+.seletor-periodo a { padding: 8px 16px; font-weight: 700; text-decoration: none; color: var(--petroleo); background: var(--superficie); }
+.seletor-periodo a[aria-current] { background: var(--petroleo); color: #fff; }
+.seletor-periodo a:hover:not([aria-current]) { background: var(--petroleo-claro); }
+
+.indicadores { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.indicador {
+  display: flex; flex-direction: column; gap: 4px; padding: 18px 20px;
+  background: var(--superficie); border: 1px solid var(--borda); border-radius: var(--raio-grande);
+}
+.indicador-rotulo { font-size: 0.875rem; color: var(--texto-suave); }
+.indicador-valor { font-size: 2.1rem; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--texto); }
+.indicador-valor small { font-size: 1rem; font-weight: 400; color: var(--texto-suave); }
+.indicador-contexto { font-size: 0.875rem; color: var(--texto-suave); }
+
+.bloco-grafico { margin-bottom: 24px; }
+.bloco-grafico > h2 { margin-bottom: 16px; }
+.numero-tabela { font-variant-numeric: tabular-nums; }
+
+/* Barras verticais: uma medida, uma cor (o petróleo da marca), sem legenda. */
+.grafico-barras { display: grid; grid-template-columns: auto 1fr; grid-template-rows: 180px auto; column-gap: 8px; }
+.eixo-y { display: flex; flex-direction: column; justify-content: space-between; font-size: 0.75rem; color: var(--texto-suave); text-align: right; font-variant-numeric: tabular-nums; }
+.barras {
+  display: grid; grid-template-columns: repeat(var(--colunas), minmax(0, 1fr)); gap: 2px; align-items: end;
+  border-bottom: 1px solid var(--borda);
+  background-image: linear-gradient(to bottom, #E3E9EB 1px, transparent 1px); background-size: 100% 50%;
+}
+.coluna { position: relative; height: 100%; display: flex; align-items: flex-end; cursor: default; }
+.barra { display: block; width: 100%; max-width: 28px; margin: 0 auto; background: var(--petroleo); border-radius: 4px 4px 0 0; }
+.coluna:hover .barra, .coluna:focus-visible .barra { background: var(--petroleo-escuro); }
+.coluna:hover::after, .coluna:focus-visible::after {
+  content: attr(data-dica); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  white-space: nowrap; padding: 4px 8px; border-radius: 6px; background: var(--texto); color: #fff; font-size: 0.8rem; z-index: 2;
+}
+.coluna:first-child:hover::after, .coluna:first-child:focus-visible::after { left: 0; transform: none; }
+.coluna:last-child:hover::after, .coluna:last-child:focus-visible::after { left: auto; right: 0; transform: none; }
+.coluna:focus-visible { outline: 2px solid var(--petroleo); outline-offset: 1px; }
+.eixo-x { grid-column: 2; display: grid; grid-template-columns: repeat(var(--colunas), minmax(0, 1fr)); gap: 2px; }
+.eixo-x span { font-size: 0.75rem; color: var(--texto-suave); text-align: center; white-space: nowrap; overflow: visible; }
+.ver-tabela { margin-top: 16px; }
+.ver-tabela summary { cursor: pointer; font-weight: 700; color: var(--petroleo); }
+.ver-tabela .tabela-caixa { margin-top: 12px; max-height: 320px; overflow-y: auto; }
+@media (max-width: 640px) {
+  .indicadores { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .indicador { padding: 14px 16px; }
+  .indicador-valor { font-size: 1.7rem; }
+  .eixo-x span { visibility: hidden; }
+  .eixo-x span:first-child, .eixo-x span:last-child { visibility: visible; }
+  .eixo-x span:first-child { text-align: left; }
+  .eixo-x span:last-child { text-align: right; direction: rtl; }
+}

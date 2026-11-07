@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load atende %}
+
+{% block titulo %}Painel de indicadores{% endblock %}
+
+{% block conteudo %}
+<div class="cabecalho-pagina">
+  <div>
+    <h1>Painel de indicadores</h1>
+    <p class="subtitulo">Últimos {{ ind.dias }} dias, desde {{ ind.inicio|date:"d/m/Y" }}. Em aberto e atrasados são a situação de agora.</p>
+  </div>
+  <nav class="seletor-periodo acoes" aria-label="Período">
+    {% for dias in periodos %}
+      <a href="?dias={{ dias }}"{% if dias == ind.dias %} aria-current="true"{% endif %}>{{ dias }} dias</a>
+    {% endfor %}
+  </nav>
+</div>
+
+<section class="indicadores" aria-label="Resumo">
+  <div class="indicador">
+    <span class="indicador-rotulo">Em aberto agora</span>
+    <strong class="indicador-valor">{{ ind.em_aberto }}</strong>
+    <span class="indicador-contexto">{{ ind.atrasados }} atrasado{{ ind.atrasados|pluralize }}</span>
+  </div>
+  <div class="indicador">
+    <span class="indicador-rotulo">Abertos no período</span>
+    <strong class="indicador-valor">{{ ind.abertos_no_periodo }}</strong>
+    <span class="indicador-contexto">tickets novos</span>
+  </div>
+  <div class="indicador">
+    <span class="indicador-rotulo">Resolvidos no período</span>
+    <strong class="indicador-valor">{{ ind.resolvidos_no_periodo }}</strong>
+    <span class="indicador-contexto">{% if ind.no_prazo_percentual is not None %}{{ ind.no_prazo_percentual }}% dentro do prazo{% else %}nenhum ainda{% endif %}</span>
+  </div>
+  <div class="indicador">
+    <span class="indicador-rotulo">Tempo médio de resolução</span>
+    <strong class="indicador-valor">{{ ind.tempo_medio_horas|duracao }}</strong>
+    <span class="indicador-contexto">da abertura até resolver</span>
+  </div>
+  <div class="indicador">
+    <span class="indicador-rotulo">Nota média do atendimento</span>
+    <strong class="indicador-valor">{% if ind.nota_media is not None %}{{ ind.nota_media }}<small> de 5</small>{% else %}—{% endif %}</strong>
+    <span class="indicador-contexto">{{ ind.avaliacoes }} avaliaç{{ ind.avaliacoes|pluralize:"ão,ões" }}</span>
+  </div>
+</section>
+
+<section class="painel bloco-grafico" aria-labelledby="titulo-por-dia">
+  <h2 id="titulo-por-dia">Tickets abertos por dia</h2>
+  {% if ind.abertos_no_periodo %}
+    <div class="grafico-barras" role="img" aria-label="Gráfico de barras: tickets abertos por dia nos últimos {{ ind.dias }} dias. A tabela abaixo traz os mesmos números.">
+      <div class="eixo-y" aria-hidden="true"><span>{{ ind.maior_dia }}</span><span>0</span></div>
+      <div class="barras" style="--colunas: {{ ind.dias }}">
+        {% for d in ind.abertos_por_dia %}
+          <div class="coluna" tabindex="0" data-dica="{{ d.dia|date:'d/m' }}: {{ d.quantidade }} ticket{{ d.quantidade|pluralize }}">
+            <span class="barra" style="height: {% widthratio d.quantidade ind.maior_dia 100 %}%"></span>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="eixo-x" aria-hidden="true" style="--colunas: {{ ind.dias }}">
+        {% for d in ind.abertos_por_dia %}
+          <span>{% if forloop.first or forloop.last or forloop.revcounter0|divisibleby:passo_rotulo %}{{ d.dia|date:"d/m" }}{% endif %}</span>
+        {% endfor %}
+      </div>
+    </div>
+    <details class="ver-tabela">
+      <summary>Ver em tabela</summary>
+      <div class="tabela-caixa">
+        <table>
+          <thead><tr><th scope="col">Dia</th><th scope="col">Tickets abertos</th></tr></thead>
+          <tbody>
+            {% for d in ind.abertos_por_dia reversed %}<tr><td>{{ d.dia|date:"d/m/Y" }}</td><td>{{ d.quantidade }}</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  {% else %}
+    <p class="subtitulo">Nenhum ticket aberto neste período.</p>
+  {% endif %}
+</section>
+
+<section class="bloco-grafico" aria-labelledby="titulo-categoria">
+  <h2 id="titulo-categoria">Por categoria</h2>
+  {% if ind.por_categoria %}
+    <div class="tabela-caixa">
+      <table>
+        <thead><tr><th scope="col">Categoria</th><th scope="col">Abertos</th><th scope="col">Resolvidos</th><th scope="col">Tempo médio de resolução</th></tr></thead>
+        <tbody>
+          {% for c in ind.por_categoria %}
+            <tr>
+              <td><strong>{{ c.nome }}</strong></td>
+              <td class="numero-tabela">{{ c.abertos }}</td>
+              <td class="numero-tabela">{{ c.resolvidos }}</td>
+              <td>{{ c.tempo_medio_horas|duracao }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="subtitulo">Sem tickets no período.</p>
+  {% endif %}
+</section>
+
+<section class="bloco-grafico" aria-labelledby="titulo-atendente">
+  <h2 id="titulo-atendente">Por atendente</h2>
+  {% if ind.por_atendente %}
+    <div class="tabela-caixa">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Atendente</th><th scope="col">Em aberto agora</th><th scope="col">Resolvidos</th>
+            <th scope="col">Dentro do prazo</th><th scope="col">Tempo médio</th><th scope="col">Nota média</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in ind.por_atendente %}
+            <tr{% if not a.ativo %} class="inativo"{% endif %}>
+              <td><strong>{{ a.nome }}</strong>{% if not a.ativo %} <span class="dica">(desativado)</span>{% endif %}</td>
+              <td class="numero-tabela">{{ a.em_aberto }}{% if a.atrasados %} <span class="situacao s-atrasado">{{ a.atrasados }} atrasado{{ a.atrasados|pluralize }}</span>{% endif %}</td>
+              <td class="numero-tabela">{{ a.resolvidos }}</td>
+              <td class="numero-tabela">{% if a.no_prazo_percentual is not None %}{{ a.no_prazo_percentual }}%{% else %}—{% endif %}</td>
+              <td>{{ a.tempo_medio_horas|duracao }}</td>
+              <td>{% if a.nota_media is not None %}<span class="estrelas-nota"><span aria-hidden="true">★</span></span>{{ a.nota_media }}{% else %}—{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="subtitulo">Nenhum atendimento no período.</p>
+  {% endif %}
+  <p class="dica" style="margin-top:8px">Resolvidos, prazo e tempo médio contam os tickets resolvidos no período. A nota média conta as avaliações feitas no período.</p>
+</section>
+{% endblock %}
