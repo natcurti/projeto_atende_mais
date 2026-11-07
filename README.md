@@ -5,6 +5,9 @@ acompanha cada um até a solução, e a gestão vê indicadores do atendimento.
 
 Projeto da disciplina do curso de **Análise e Desenvolvimento de Sistemas — FATEC**.
 
+**Versão atual:** `v0.1.0` (MVP), com cadastro e login, abertura e acompanhamento de tickets pelo cliente,
+fila de atendimento, atendimento pela equipe e administração. Veja o [Checkpoint 2](docs/09-mvp-funcional/).
+
 **Protótipo navegável:** https://natcurti.github.io/projeto_atende_mais/03-ux-ui/prototipo/
 
 ## Etapas do projeto
@@ -19,7 +22,7 @@ Projeto da disciplina do curso de **Análise e Desenvolvimento de Sistemas — F
 | 6 | Entrega 6: arquitetura e padrões | Concluída | [docs/06-arquitetura](docs/06-arquitetura/) |
 | 7 | Entrega 7: gerenciamento do projeto | Não realizada | — |
 | 8 | Checkpoint 1: definição do MVP | Concluída | [docs/08-mvp](docs/08-mvp/) |
-| 9 | Checkpoint 2: MVP funcional | A fazer | — |
+| 9 | Checkpoint 2: MVP funcional (`v0.1.0`) | Concluída | [docs/09-mvp-funcional](docs/09-mvp-funcional/) |
 | 10 | Checkpoint 3: evolução | A fazer | — |
 | 11 | Checkpoint 4: nova versão | A fazer | — |
 | 12 | Entrega 8: plano e execução de testes | A fazer | — |
@@ -78,11 +81,14 @@ Para parar o servidor, use `Ctrl + C` no terminal.
 
 **Usuários de exemplo** (senha de todos: `atende123`):
 
-| Perfil | E-mail |
-| --- | --- |
-| Administrador | juliana@empresa.com |
-| Atendente | carlos@empresa.com |
-| Cliente | maria@souzacomercio.com.br |
+| Perfil | E-mail | Começa em |
+| --- | --- | --- |
+| Administradora | juliana@empresa.com | Fila; também acessa *Administração* |
+| Atendente | carlos@empresa.com | Fila de atendimento |
+| Atendente | ana@empresa.com | Fila de atendimento |
+| Cliente | maria@souzacomercio.com.br | Meus tickets |
+
+O roteiro de demonstração passo a passo está em [docs/09-mvp-funcional](docs/09-mvp-funcional/#4-roteiro-de-demonstração).
 
 Todos os dados também podem ser vistos na área técnica do Django, em http://127.0.0.1:8000/admin,
 entrando como a administradora.
@@ -116,7 +122,9 @@ projeto_atende_mais/
 │   ├── 03-ux-ui/          inclui o protótipo navegável
 │   ├── 04-banco-de-dados/
 │   ├── 05-repositorio/
-│   └── 06-arquitetura/
+│   ├── 06-arquitetura/
+│   ├── 08-mvp/            Checkpoint 1: definição do MVP
+│   └── 09-mvp-funcional/  Checkpoint 2: MVP funcional, com capturas de tela
 ├── .github/               modelo de pull request
 ├── .editorconfig          estilo dos arquivos
 ├── .gitattributes         quebras de linha padronizadas
