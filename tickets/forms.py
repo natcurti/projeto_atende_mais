@@ -38,6 +38,37 @@ class RespostaForm(forms.Form):
     )
 
 
+class MensagemEquipeForm(RespostaForm):
+    """
+    Mensagem da equipe: ao cliente (RF12) ou nota interna (RF13).
+    Quem não pode atuar no ticket (RN05) só pode escrever nota interna.
+    """
+
+    CLIENTE, INTERNA = "cliente", "interna"
+
+    tipo = forms.ChoiceField(
+        label="Tipo de mensagem", required=False,
+        choices=[(CLIENTE, "Mensagem ao cliente"), (INTERNA, "Nota interna")],
+        initial=CLIENTE, widget=forms.RadioSelect,
+    )
+
+    def __init__(self, *args, pode_responder_cliente=True, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["texto"].label = "Mensagem"
+        self.fields["texto"].widget.attrs["placeholder"] = "Escreva a resposta ou a nota"
+        if not pode_responder_cliente:
+            self.fields["tipo"].choices = [(self.INTERNA, "Nota interna")]
+            self.fields["tipo"].initial = self.INTERNA
+
+    def clean_tipo(self):
+        # Sem escolha, vale a primeira opção disponível (mensagem ao cliente, ou nota para quem só pode anotar).
+        return self.cleaned_data["tipo"] or self.fields["tipo"].choices[0][0]
+
+    @property
+    def interna(self):
+        return self.cleaned_data.get("tipo") == self.INTERNA
+
+
 class FiltroFilaForm(forms.Form):
     """Filtros da fila de atendimento (RF08). Todos são opcionais e podem ser combinados."""
 

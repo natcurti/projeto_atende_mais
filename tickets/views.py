@@ -6,7 +6,9 @@ from django.views.decorators.http import require_POST
 from contas.permissoes import somente_administrador, somente_cliente, somente_equipe
 
 from . import services
-from .forms import CategoriaForm, FiltroFilaForm, GerenciarTicketForm, NovoTicketForm, RespostaForm
+from .forms import (
+    CategoriaForm, FiltroFilaForm, GerenciarTicketForm, MensagemEquipeForm, NovoTicketForm, RespostaForm,
+)
 from .models import Categoria, Ticket
 
 
@@ -119,19 +121,22 @@ def _ticket_da_equipe(numero):
 def ticket_equipe(request, numero):
     """
     Ticket na visão da equipe (RF09): conversa completa, inclusive notas internas,
-    resposta ao cliente (RF12) e o painel "Gerenciar ticket" (RF10, RF11).
+    resposta ao cliente (RF12), nota interna (RF13) e o painel "Gerenciar ticket" (RF10, RF11).
     """
     ticket = _ticket_da_equipe(numero)
     pode_atuar = services.pode_atuar(request.user, ticket)
-    form = RespostaForm(request.POST or None)
+    form = MensagemEquipeForm(request.POST or None, pode_responder_cliente=pode_atuar)
 
     if request.method == "POST" and form.is_valid():
         try:
-            services.responder(ticket, request.user, form.cleaned_data["texto"])
+            services.responder(ticket, request.user, form.cleaned_data["texto"], interna=form.interna)
         except services.RegraDeNegocioError as erro:
             messages.error(request, str(erro))
         else:
-            messages.success(request, "Mensagem enviada ao cliente.")
+            if form.interna:
+                messages.success(request, "Nota interna salva. O cliente não vê esta nota.")
+            else:
+                messages.success(request, "Mensagem enviada ao cliente.")
         return redirect("tickets:ticket_equipe", numero=ticket.pk)
 
     eh_admin = request.user.perfil == request.user.Perfil.ADMINISTRADOR
