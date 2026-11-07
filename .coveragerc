@@ -1,0 +1,13 @@
+# Configuração da medição de cobertura dos testes (Entrega 8).
+# Uso: pip install coverage  →  coverage run manage.py test  →  coverage report
+[run]
+source = config, contas, tickets, painel
+omit =
+    */migrations/*
+    */tests.py
+    config/asgi.py
+    config/wsgi.py
+
+[report]
+skip_empty = True
+show_missing = False
