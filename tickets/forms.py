@@ -6,20 +6,28 @@ from contas.models import Usuario
 from .models import Categoria, Ticket
 from .services import situacoes_possiveis
 
+# Limite de tamanho das mensagens: uma página de texto é mais do que suficiente para descrever um problema,
+# e o limite impede que um envio enorme deixe a conversa ilegível ou encha o banco.
+TAMANHO_MAXIMO_TEXTO = 5000
+
 
 class NovoTicketForm(forms.ModelForm):
     """Abertura de ticket pelo cliente (RF06)."""
+
+    descricao = forms.CharField(
+        label="Descrição", max_length=TAMANHO_MAXIMO_TEXTO,
+        widget=forms.Textarea(attrs={"rows": 7}),
+        help_text="O que você fez, o que esperava que acontecesse e o que aconteceu.",
+    )
 
     class Meta:
         model = Ticket
         fields = ["titulo", "categoria", "descricao"]
         widgets = {
             "titulo": forms.TextInput(attrs={"maxlength": 120}),
-            "descricao": forms.Textarea(attrs={"rows": 7}),
         }
         help_texts = {
             "titulo": "Resuma o problema em uma frase. Ex.: Erro ao emitir nota fiscal",
-            "descricao": "O que você fez, o que esperava que acontecesse e o que aconteceu.",
         }
 
     def __init__(self, *args, **kwargs):
@@ -33,7 +41,7 @@ class RespostaForm(forms.Form):
     """Nova mensagem na conversa do ticket (RF12)."""
 
     texto = forms.CharField(
-        label="Responder",
+        label="Responder", max_length=TAMANHO_MAXIMO_TEXTO,
         widget=forms.Textarea(attrs={"rows": 4, "placeholder": "Escreva sua mensagem"}),
         error_messages={"required": "Escreva a mensagem antes de enviar."},
     )

@@ -175,6 +175,15 @@ class AbrirTicketTests(ClienteTestCase):
             self.assertTrue(resposta.context["form"].has_error(campo), campo)
         self.assertEqual(Ticket.objects.count(), 1)
 
+    def test_descricao_tem_limite_de_tamanho(self):  # BUG-08
+        self.client.force_login(self.maria)
+        dados = {"titulo": "Texto enorme", "categoria": self.erro.pk, "descricao": "x" * 5001}
+        resposta = self.client.post(reverse("tickets:novo_ticket"), dados)
+        self.assertTrue(resposta.context["form"].has_error("descricao"))
+        dados["descricao"] = "x" * 5000
+        self.client.post(reverse("tickets:novo_ticket"), dados)
+        self.assertTrue(Ticket.objects.filter(titulo="Texto enorme").exists())
+
 
 class MeusTicketsTests(ClienteTestCase):
     def test_lista_so_os_tickets_da_cliente(self):  # RN08
@@ -241,6 +250,12 @@ class DetalheDoTicketClienteTests(ClienteTestCase):
         self.client.force_login(self.maria)
         resposta = self.client.post(self.url(), {"texto": "   "})
         self.assertContains(resposta, "Escreva a mensagem antes de enviar.")
+        self.assertEqual(self.ticket.mensagens.count(), 0)
+
+    def test_resposta_tem_limite_de_tamanho(self):  # BUG-08
+        self.client.force_login(self.maria)
+        resposta = self.client.post(self.url(), {"texto": "y" * 5001})
+        self.assertTrue(resposta.context["form"].has_error("texto"))
         self.assertEqual(self.ticket.mensagens.count(), 0)
 
     def test_resposta_da_cliente_tira_de_aguardando_cliente(self):  # RN06, RN13

@@ -63,7 +63,7 @@
             <td class="col-detalhe">{{ t.categoria }}</td>
             <td class="col-detalhe">{% include "includes/prioridade.html" %}</td>
             <td class="col-situacao">{% include "includes/situacao.html" %}</td>
-            <td class="col-detalhe"><span class="so-celular">Atendente: </span>{% if t.atendente %}{{ t.atendente.nome }}{% else %}<span class="inativo">Ninguém</span>{% endif %}</td>
+            <td class="col-detalhe quebra-longa"><span class="so-celular">Atendente: </span>{% if t.atendente %}{{ t.atendente.nome }}{% else %}<span class="inativo">Ninguém</span>{% endif %}</td>
             <td class="col-detalhe">
               {% if t.esta_atrasado %}
                 <span class="situacao s-atrasado">Atrasado há {{ t.prazo|tempo_curto }}</span>

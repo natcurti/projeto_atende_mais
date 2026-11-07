@@ -87,7 +87,7 @@
         <tbody>
           {% for c in ind.por_categoria %}
             <tr>
-              <td><strong>{{ c.nome }}</strong></td>
+              <td class="quebra-longa"><strong>{{ c.nome }}</strong></td>
               <td class="numero-tabela">{{ c.abertos }}</td>
               <td class="numero-tabela">{{ c.resolvidos }}</td>
               <td>{{ c.tempo_medio_horas|duracao }}</td>
@@ -115,7 +115,7 @@
         <tbody>
           {% for a in ind.por_atendente %}
             <tr{% if not a.ativo %} class="inativo"{% endif %}>
-              <td><strong>{{ a.nome }}</strong>{% if not a.ativo %} <span class="dica">(desativado)</span>{% endif %}</td>
+              <td class="quebra-longa"><strong>{{ a.nome }}</strong>{% if not a.ativo %} <span class="dica">(desativado)</span>{% endif %}</td>
               <td class="numero-tabela">{{ a.em_aberto }}{% if a.atrasados %} <span class="situacao s-atrasado">{{ a.atrasados }} atrasado{{ a.atrasados|pluralize }}</span>{% endif %}</td>
               <td class="numero-tabela">{{ a.resolvidos }}</td>
               <td class="numero-tabela">{% if a.no_prazo_percentual is not None %}{{ a.no_prazo_percentual }}%{% else %}—{% endif %}</td>
