@@ -10,7 +10,7 @@ O atende+ é um sistema web de tickets de suporte. Com ele, clientes de uma empr
 | Tipo | Aplicação web (navegador de desktop e celular) |
 | Contexto | Suporte a clientes de uma empresa fictícia que vende um software de gestão |
 | Tecnologia prevista | Python + Django, banco relacional (detalhado na Entrega 6) |
-| Equipe | 1 integrante |
+| Equipe | 3 integrantes: Natália Curti, Mariana Ascencio e Gabriel Santos |
 | Disciplina | Projeto do curso de Análise e Desenvolvimento de Sistemas — FATEC |
 
 ## 2. Problema
@@ -161,4 +161,4 @@ O atende+ cobre o ciclo completo de um ticket, da abertura à avaliação, mais 
 
 - A empresa usuária é fictícia; os dados de demonstração serão gerados para testes.
 - Os prazos de resolução contam horas corridas, sem considerar horário comercial ou feriados.
-- O projeto é desenvolvido por uma pessoa, então o escopo foi dimensionado para caber no semestre.
+- O projeto é desenvolvido por uma equipe pequena, então o escopo foi dimensionado para caber no semestre.

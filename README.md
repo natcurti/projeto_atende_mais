@@ -261,4 +261,6 @@ e mensagens de commit no padrão *Conventional Commits*. As regras completas est
 
 ## Autoria
 
-Desenvolvido por [@natcurti](https://github.com/natcurti).
+Desenvolvido por **Natália Curti**, **Mariana Ascencio** e **Gabriel Santos**, para a disciplina do curso de Análise e Desenvolvimento de Sistemas — FATEC.
+
+Os commits e os pull requests foram centralizados na conta [@natcurti](https://github.com/natcurti).

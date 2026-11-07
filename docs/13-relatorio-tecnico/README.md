@@ -8,7 +8,7 @@ Versão para impressão: [relatorio-tecnico-atende-mais.pdf](relatorio-tecnico-a
 | --- | --- |
 | Curso | Análise e Desenvolvimento de Sistemas — FATEC |
 | Entrega | Entrega 9: relatório técnico |
-| Autoria | Natalia Curti ([@natcurti](https://github.com/natcurti)) |
+| Autoria | Natália Curti, Mariana Ascencio e Gabriel Santos |
 | Versão descrita | `v1.0.0` |
 | Data | Novembro de 2026 |
 | Sistema publicado | https://natcurti.pythonanywhere.com |
@@ -81,7 +81,7 @@ O projeto seguiu as 14 etapas da disciplina. Cada uma gerou um documento em `doc
 | 4 | Banco de dados | Modelo entidade-relacionamento, modelo lógico e script SQL |
 | 5 | Repositório e versionamento | Fluxo de branches, padrão de commits e modelo de pull request |
 | 6 | Arquitetura | Camadas, padrões e esqueleto do projeto Django |
-| 7 | Gerenciamento | Não realizada: o projeto teve uma integrante e um prazo curto |
+| 7 | Gerenciamento | Não realizada, por causa do prazo curto |
 | 8 | Checkpoint 1 | Escopo do MVP e 27 critérios de aceite |
 | 9 | Checkpoint 2 | MVP funcional (`v0.1.0`) |
 | 10 e 11 | Checkpoints 3 e 4 | Evolução e nova versão (`v0.2.0`) |
@@ -101,7 +101,7 @@ num pull request antes de entrar no código principal. As branches seguem o mode
 | `feature/…` e `docs/…` | Uma por tarefa |
 
 Os commits seguem o padrão *Conventional Commits* em português, como `feat(tickets): …`, `fix(layout): …` e `docs: …`.
-Ao todo, o repositório passou de 85 commits e 20 pull requests.
+Ao todo, o repositório passou de 85 commits e 20 pull requests. Os commits e os pull requests foram centralizados na conta de uma integrante (@natcurti).
 
 A priorização usou três níveis (Essencial, Importante, Desejável). O MVP reuniu os essenciais. As evoluções
 escolheram os importantes de maior valor visível. Os desejáveis ficaram para trabalhos futuros.
