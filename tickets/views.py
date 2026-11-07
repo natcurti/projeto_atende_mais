@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from contas.permissoes import somente_administrador, somente_cliente, somente_equipe
@@ -169,7 +170,10 @@ def assumir_ticket(request, numero):
 @somente_equipe
 @require_POST
 def gerenciar_ticket(request, numero):
-    """Painel Gerenciar ticket: o administrador troca o atendente (RF10); o responsável ou o administrador muda a situação (RF11)."""
+    """
+    Painel Gerenciar ticket: o administrador troca o atendente (RF10); o responsável ou o administrador
+    muda a prioridade (RF17) e a situação (RF11).
+    """
     ticket = _ticket_da_equipe(numero)
     form = GerenciarTicketForm(request.POST, ticket=ticket, usuario=request.user)
     if not form.is_valid():
@@ -183,6 +187,13 @@ def gerenciar_ticket(request, numero):
         if novo_atendente and novo_atendente.pk != ticket.atendente_id:
             services.atribuir(ticket, request.user, novo_atendente)
             feito.append(f"ticket passado para {novo_atendente.nome}")
+        nova_prioridade = form.cleaned_data["prioridade"]
+        if nova_prioridade != ticket.prioridade:  # antes da situação: ticket resolvido não muda de prioridade
+            services.mudar_prioridade(ticket, request.user, nova_prioridade)
+            feito.append(
+                f"prioridade alterada para {ticket.get_prioridade_display()}, "
+                f"com novo prazo em {timezone.localtime(ticket.prazo):%d/%m, %H:%M}"
+            )
         nova = form.cleaned_data["situacao"]
         if nova != situacao_original:
             services.mudar_situacao(ticket, request.user, nova)

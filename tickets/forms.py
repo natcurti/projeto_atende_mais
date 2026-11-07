@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 
 from contas.models import Usuario
 
@@ -118,11 +119,19 @@ class FiltroFilaForm(forms.Form):
 
 class GerenciarTicketForm(forms.Form):
     """
-    Painel "Gerenciar ticket" (RF10, RF11).
-    A situação só oferece as mudanças permitidas agora; o atendente só aparece para administradores.
+    Painel "Gerenciar ticket" (RF10, RF11, RF17).
+    A situação só oferece as mudanças permitidas agora; o atendente só aparece para administradores;
+    a prioridade mostra o prazo de cada opção (RN09).
     """
 
     situacao = forms.ChoiceField(label="Situação")
+    prioridade = forms.ChoiceField(
+        label="Prioridade", required=False,
+        choices=[
+            ("urgente", "Urgente (4 horas)"), ("alta", "Alta (1 dia)"),
+            ("media", "Média (3 dias)"), ("baixa", "Baixa (5 dias)"),
+        ],
+    )
     atendente = forms.ModelChoiceField(label="Atendente", queryset=Usuario.objects.none(), empty_label=None)
 
     def __init__(self, *args, ticket, usuario, **kwargs):
@@ -133,6 +142,11 @@ class GerenciarTicketForm(forms.Form):
             (atual.value, atual.label), *[(s.value, s.label) for s in situacoes_possiveis(ticket)]
         ]
         self.fields["situacao"].initial = atual.value
+        self.fields["prioridade"].initial = ticket.prioridade
+        self.fields["prioridade"].help_text = (
+            f"Prazo atual: {timezone.localtime(ticket.prazo):%d/%m, %H:%M}. "
+            "Muda junto com a prioridade, contado a partir da abertura."
+        )
 
         if usuario.perfil == Usuario.Perfil.ADMINISTRADOR:
             self.fields["atendente"].queryset = Usuario.objects.filter(
@@ -144,6 +158,10 @@ class GerenciarTicketForm(forms.Form):
                 self.fields["atendente"].empty_label = "Ninguém ainda"
         else:
             del self.fields["atendente"]
+
+    def clean_prioridade(self):
+        # Sem prioridade enviada, vale a atual (nada muda).
+        return self.cleaned_data["prioridade"] or self.ticket.prioridade
 
 
 class CategoriaForm(forms.ModelForm):
