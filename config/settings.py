@@ -33,8 +33,17 @@ ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "localhost,1
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
 
 if not DEBUG:
+    # No servidor, a chave secreta de desenvolvimento (que está no GitHub) não pode ser usada.
+    if SECRET_KEY.startswith("chave-somente-para-desenvolvimento") or SECRET_KEY == "troque-esta-chave":
+        from django.core.exceptions import ImproperlyConfigured
+
+        raise ImproperlyConfigured("Com DEBUG=False, defina uma SECRET_KEY própria no arquivo .env.")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+# O redirecionamento para HTTPS é feito pelo próprio PythonAnywhere (opção "Force HTTPS" da aba Web),
+# e o HSTS fica desligado porque o site usa um subdomínio que não é nosso (pythonanywhere.com).
+SILENCED_SYSTEM_CHECKS = ["security.W004", "security.W008"]
 
 
 # --- Aplicações ---

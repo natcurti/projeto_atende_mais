@@ -47,6 +47,11 @@ body {
 }
 
 h1, h2, h3 { line-height: 1.25; margin: 0; }
+/* Palavras muito longas (um link, um código de erro) quebram a linha em vez de estourar a tela.
+   No texto corrido basta break-word; títulos, termos de definição e células de tabela precisam de anywhere. */
+body { overflow-wrap: break-word; }
+h1, h2, h3, dd, .evento, .col-titulo, .quebra-longa { overflow-wrap: anywhere; }
+td.quebra-longa, .tabela-responsiva td.quebra-longa { min-width: 6em; white-space: normal; }
 h1 { font-size: 1.75rem; }
 h2 { font-size: 1.25rem; }
 h3 { font-size: 1.05rem; }
