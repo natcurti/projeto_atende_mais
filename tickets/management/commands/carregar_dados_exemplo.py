@@ -8,6 +8,7 @@ para sempre haver tickets recentes e um ticket atrasado na demonstração.
 Para recomeçar do zero: apague o arquivo db.sqlite3 e rode `migrate` de novo.
 """
 
+import random
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
@@ -178,6 +179,9 @@ class Command(BaseCommand):
         # --- Avaliações (o #1001 fica sem, para a Maria avaliar na demonstração) ---
         Avaliacao.objects.create(ticket=t1000, nota=4, comentario="Resolveram rápido.", avaliado_em=t1000.resolvido_em + timedelta(hours=2))
 
+        # --- Histórico para o painel de indicadores (RF18) ---
+        self._historico(agora, [roberto, fernanda, jose], [carlos, ana, juliana], [erro, duvida, financeiro])
+
         # "Última atualização" de cada ticket = o último acontecimento dele (mensagem ou mudança).
         for t in Ticket.objects.all():
             datas = [t.aberto_em, *t.mensagens.values_list("criada_em", flat=True),
@@ -190,3 +194,51 @@ class Command(BaseCommand):
         ))
         self.stdout.write(f"Todos os usuários entram com a senha: {SENHA_DEMONSTRACAO}")
         self.stdout.write(f"Área técnica (/admin): {juliana.email}")
+
+    def _historico(self, agora, clientes, equipe, categorias):
+        """
+        45 tickets já resolvidos ou fechados nos últimos 40 dias, para o painel ter o que mostrar.
+        Usa sempre a mesma semente: os números saem iguais em qualquer máquina.
+        """
+        sorteio = random.Random(2026)
+        S = Ticket.Situacao
+        # Horas típicas de resolução por categoria: dúvidas são rápidas, erros demoram mais.
+        horas_tipicas = {"Dúvida": (1, 20), "Financeiro": (4, 40), "Erro no sistema": (6, 90)}
+        assuntos = {
+            "Dúvida": ["Como exportar o relatório?", "Onde altero meu e-mail?", "Como emitir segunda via?", "Dúvida sobre permissões"],
+            "Financeiro": ["Boleto com valor errado", "Nota fiscal não chegou", "Cobrança em duplicidade", "Mudança de forma de pagamento"],
+            "Erro no sistema": ["Tela de vendas não carrega", "Erro ao salvar cliente", "Relatório sai em branco", "Sistema lento pela manhã"],
+        }
+        for _ in range(45):
+            categoria = sorteio.choice(categorias)
+            prioridade = sorteio.choices(["urgente", "alta", "media", "baixa"], weights=[1, 3, 5, 2])[0]
+            aberto_em = agora - timedelta(days=sorteio.uniform(3, 40))
+            minimo, maximo = horas_tipicas[categoria.nome]
+            resolvido_em = aberto_em + timedelta(hours=sorteio.uniform(minimo, maximo))
+            atendente = sorteio.choices(equipe, weights=[5, 4, 1])[0]
+            fechado = resolvido_em < agora - timedelta(days=7)
+            ticket = Ticket.objects.create(
+                titulo=sorteio.choice(assuntos[categoria.nome]), descricao="Ticket do histórico de exemplo.",
+                cliente=sorteio.choice(clientes), categoria=categoria, prioridade=prioridade, atendente=atendente,
+                situacao=S.FECHADO if fechado else S.RESOLVIDO, aberto_em=aberto_em,
+                resolvido_em=resolvido_em, fechado_em=resolvido_em + timedelta(days=7) if fechado else None,
+            )
+            assumido = aberto_em + timedelta(minutes=sorteio.randint(10, 90))
+            Historico.objects.create(ticket=ticket, autor=atendente, campo="atendente", valor_novo=atendente.nome, alterado_em=assumido)
+            Historico.objects.create(
+                ticket=ticket, autor=atendente, campo="situacao", valor_anterior=S.ABERTO, valor_novo=S.EM_ATENDIMENTO,
+                alterado_em=assumido,
+            )
+            Historico.objects.create(
+                ticket=ticket, autor=atendente, campo="situacao", valor_anterior=S.EM_ATENDIMENTO, valor_novo=S.RESOLVIDO,
+                alterado_em=resolvido_em,
+            )
+            if fechado:
+                Historico.objects.create(
+                    ticket=ticket, autor=atendente, campo="situacao", valor_anterior=S.RESOLVIDO, valor_novo=S.FECHADO,
+                    alterado_em=ticket.fechado_em,
+                )
+            if sorteio.random() < 0.7:  # 70% dos clientes avaliam
+                atraso = resolvido_em > ticket.prazo
+                nota = sorteio.choices([1, 2, 3, 4, 5], weights=[2, 3, 3, 4, 2] if atraso else [0, 1, 2, 5, 8])[0]
+                Avaliacao.objects.create(ticket=ticket, nota=nota, avaliado_em=resolvido_em + timedelta(hours=sorteio.uniform(1, 30)))
